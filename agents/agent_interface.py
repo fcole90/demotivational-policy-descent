@@ -5,12 +5,18 @@ import pickle
 
 import numpy as np
 
-from save_models import io
+from envs.pong import Pong
+from utils import io
 
 
 class AgentInterface(abc.ABC):
-    def __init__(self):
-        pass
+    def __init__(self, env, player_id=1):
+        if env is None:
+            logging.debug("Running with empty env for debugging purposes")
+        elif type(env) is not Pong:
+            raise TypeError("Expected type(env) == 'Pong', found '{}' instead.".format(type(env)))
+        self.env = env
+        self.player_id = player_id
 
     def load_model(self, filename: str):
         """Loads a model from file.
@@ -67,7 +73,7 @@ class AgentInterface(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_action(self, frame: np.array) -> int:
+    def get_action(self, frame: np.array=None) -> int:
         pass
 
     def get_name(self) -> str:

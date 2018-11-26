@@ -148,18 +148,20 @@ class Pong():
 
     def step(self, actions):
         """
-        This functions is a modification of the openai gym step function for two players. The render option can be set directly in this functions
+        This functions is a modification of the OpenAI gym step function for two players.
+        The render option can be set directly in this functions
 
         TODO:
         catch error if wrong player id is entered
 
-        ARGUMENS:
+        ARGUMENTS:
         player: integer; player=1: left player, player=2: right player
         action: the action the player took
         r: render the game or not
 
         RETURN:
-        observation: return the current state of the game area mirrored so that every player plays from the perspective of the left player. This is done to speed up the training
+        observation: return the current state of the game area mirrored so that every player plays from the
+        perspective of the left player. This is done to speed up the training
         reward: the reward the given player got
         done: episode over
         info: debug output

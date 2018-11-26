@@ -1,18 +1,22 @@
 import logging
 
 import numpy as np
+import torch
 
 from agents.agent_interface import AgentInterface
 
 
-class Dummy(AgentInterface):
-    def __init__(self, env, player_id=1):
+class SimpleRL(AgentInterface):
+    def __init__(self, env, player_id:int=1):
         super().__init__(env=env, player_id=player_id)
+
         self.reset()  # Call reset here to avoid code duplication!
 
     def reset(self):
         logging.debug("Resetting parameters...")
-        self.test_attribute = 5
+        self.observations = []
+        self.actions = []
+        self.rewards = []
         logging.debug("Reset!")
 
     def get_action(self, frame: np.array=None) -> int:
@@ -23,7 +27,7 @@ class Dummy(AgentInterface):
 if __name__ == "__main__":
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
-    dummy = Dummy(env=None, player_id=1)
+    dummy = SimpleRL(env=None, player_id=1)
     dummy.test_attribute = 100
     name = "dummy_test_model.mdl"
     dummy.save_model(name)
