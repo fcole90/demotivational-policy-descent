@@ -11,3 +11,6 @@ would have written in your `__init__`.
 
 The method `get_action` needs to be implemented in each
 agent child.
+
+## References
+1. Karpathy Pong with Policy Gradient: [https://karpathy.github.io/2016/05/31/rl/](https://karpathy.github.io/2016/05/31/rl/)
