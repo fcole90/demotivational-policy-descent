@@ -44,7 +44,7 @@ def main():
 
             (ob1, ob2), (rew1, rew2), done, info = env.step((action1, action2))
 
-            player.store_outcome(log_prob, action1, rew1)#ob1, log_prob, action1, rew1)
+            player.store_outcome(log_prob, rew1)#ob1, log_prob, action1, rew1)
 
             reward_sum += rew1
             reward_n += rew1
