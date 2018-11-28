@@ -60,8 +60,8 @@ def main():
             print("episode {} over - reward = {}".format(episode_no + 1, reward_n))
             reward_n = 0
 
-        if ((episode_no + 1) % 10) == 0:
-            player.episode_finished(episode_no)
+        #if ((episode_no + 1) % 10) == 0:
+        player.episode_finished(episode_no)
 
     # Needs to be called in the end to shut down pygame
     env.end()

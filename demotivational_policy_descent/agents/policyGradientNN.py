@@ -14,10 +14,10 @@ class Policy(torch.nn.Module):
         self.state_space = state_space
         self.action_space = action_space
         self.fc1 = torch.nn.Linear(state_space, 1024)
-        self.fc2 = torch.nn.Linear(1024, 512)
-        self.fc3 = torch.nn.Linear(512, 512)
-        self.fc4 = torch.nn.Linear(512, 256)
-        self.fc5 = torch.nn.Linear(256, action_space)
+        #self.fc2 = torch.nn.Linear(1024, 512)
+        #self.fc3 = torch.nn.Linear(512, 512)
+        #self.fc4 = torch.nn.Linear(512, 256)
+        self.fc5 = torch.nn.Linear(1024, action_space)
 
         # Initialize neural network weights
         self.init_weights()
@@ -32,14 +32,14 @@ class Policy(torch.nn.Module):
         x = self.fc1(x)
         x = F.relu(x)
 
-        x = self.fc2(x)
-        x = F.relu(x)
+        #x = self.fc2(x)
+        #x = F.relu(x)
 
-        x = self.fc3(x)
-        x = F.relu(x)
+        #x = self.fc3(x)
+        #x = F.relu(x)
 
-        x = self.fc4(x)
-        x = F.relu(x)
+        #x = self.fc4(x)
+        #x = F.relu(x)
 
         x = self.fc5(x)
         x = F.softmax(x, dim=-1)
@@ -67,7 +67,9 @@ class PolicyGradientNN(AgentInterface):
         logging.debug("Reset!")
 
     def episode_finished(self, episode_number):
-        all_actions = torch.stack(self.actions, dim=0).to(self.train_device).squeeze(-1)
+        #all_actions = torch.stack(self.actions, dim=0).to(self.train_device).squeeze(-1)
+        print(self.actions)
+        all_actions = torch.stack(torch.Tensor(self.actions), dim=0).to(self.train_device).squeeze(-1)
         all_rewards = torch.stack(self.rewards, dim=0).to(self.train_device).squeeze(-1)
         self.reset()
 
@@ -89,9 +91,10 @@ class PolicyGradientNN(AgentInterface):
     def get_action(self, observation, evaluation=False, frame: np.array=None) -> int:
         observation = observation.flatten()
         x = torch.from_numpy(observation).float().to(self.train_device)#float().to(self.train_device)
-        prob = self.policy.forward(x).detach().numpy()
-        print(prob)
+        prob = self.policy.forward(x)#.detach().numpy()
         chosen_action = softmax_sample(prob)
+        prob = prob.detach().numpy()
+
         return chosen_action, np.log(prob[chosen_action])
 
     def store_outcome(self, log_action_prob, action_taken, reward):#observation, log_action_prob, action_taken, reward):

@@ -41,7 +41,7 @@ class PolicyGradient(AgentInterface):
 
         self.train_device = "cpu" #if torch.cuda.is_available() else "cpu"
         self.policy = policy.to(self.train_device)
-        self.optimizer = torch.optim.RMSprop(policy.parameters(), lr=5e-3)
+        self.optimizer = torch.optim.Adam(policy.parameters(), lr=1e-4)
         self.batch_size = 1
         self.gamma = 0.98
 
@@ -87,9 +87,9 @@ class PolicyGradient(AgentInterface):
         chosen_action = softmax_sample(torch.exp(log_prob))
         return chosen_action, log_prob[chosen_action]
 
-    def store_outcome(self, log_action_prob, action_taken, reward):#observation, log_action_prob, action_taken, reward):
+    def store_outcome(self, log_action_prob, reward):#observation, log_action_prob, action_taken, reward):
         # dist = torch.distributions.Categorical(action_output)
-        action_taken = torch.Tensor([action_taken]).to(self.train_device)
+        # action_taken = torch.Tensor([action_taken]).to(self.train_device)
         # log_action_prob = -dist.log_prob(action_taken)
 
         #self.observations.append(observation)
