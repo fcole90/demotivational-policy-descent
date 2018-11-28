@@ -2,7 +2,7 @@ import argparse
 
 import matplotlib.pyplot as plt
 
-from demotivational_policy_descent.envs import Pong
+from demotivational_policy_descent.environment import Pong
 from demotivational_policy_descent.agents.simple_ai import PongAi
 
 parser = argparse.ArgumentParser()

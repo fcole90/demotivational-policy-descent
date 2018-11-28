@@ -5,7 +5,7 @@ import pickle
 
 import numpy as np
 
-from demotivational_policy_descent.envs.pong import Pong
+from demotivational_policy_descent.environment.pong import Pong
 from demotivational_policy_descent.utils import io
 
 

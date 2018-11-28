@@ -84,9 +84,9 @@ celerybeat-schedule
 # Environments
 .env
 .venv
-envs/
+demotivational_policy_descent/environment/
 venv/
-envs/
+demotivational_policy_descent/environment/
 env.bak/
 venv.bak/
 
