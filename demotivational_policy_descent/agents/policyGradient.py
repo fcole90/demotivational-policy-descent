@@ -13,9 +13,9 @@ class Policy(torch.nn.Module):
         # Create layers etc
         self.state_space = state_space
         self.action_space = action_space
-        self.fc1 = torch.nn.Linear(state_space, 200)
-        self.fc_mean = torch.nn.Linear(200, action_space)
-        self.fc_s = torch.nn.Linear(200, action_space)
+        self.fc1 = torch.nn.Linear(state_space, 50)
+        self.fc_mean = torch.nn.Linear(50, action_space)
+        self.fc_s = torch.nn.Linear(50, action_space)
 
         # Initialize neural network weights
         self.init_weights()
@@ -39,7 +39,7 @@ class PolicyGradient(AgentInterface):
     def __init__(self, env, state_space, action_space, policy, player_id:int=1):
         super().__init__(env=env, player_id=player_id)
 
-        self.train_device = "cpu"  # ""cuda" if torch.cuda.is_available() else "cpu"
+        self.train_device = "cuda" #if torch.cuda.is_available() else "cpu"
         self.policy = policy.to(self.train_device)
         self.optimizer = torch.optim.RMSprop(policy.parameters(), lr=5e-3)
         self.batch_size = 1
@@ -75,15 +75,17 @@ class PolicyGradient(AgentInterface):
         self.optimizer.zero_grad()
 
     def get_action(self, observation, evaluation=False, frame: np.array=None) -> int:
-        x = torch.from_numpy(observation).float().to(self.train_device)
+        observation = observation.flatten()
+        x = torch.from_numpy(observation).float().to(self.train_device)#float().to(self.train_device)
         mean, s = self.policy.forward(x)
         if evaluation:
-            action = mean
+            action = np.argmax(mean)
         else:
             action = Normal(loc=mean, scale=s).sample()
 
         log_prob = Normal(loc=mean, scale=s).log_prob(action)
-        return action, log_prob
+        chosen_action = softmax_sample(torch.exp(log_prob))
+        return chosen_action, log_prob[chosen_action]
 
     def store_outcome(self, observation, log_action_prob, action_taken, reward):
         # dist = torch.distributions.Categorical(action_output)
