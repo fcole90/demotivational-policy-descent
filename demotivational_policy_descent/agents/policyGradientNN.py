@@ -13,9 +13,11 @@ class Policy(torch.nn.Module):
         # Create layers etc
         self.state_space = state_space
         self.action_space = action_space
-        self.fc1 = torch.nn.Linear(state_space, 50)
-        self.fc_mean = torch.nn.Linear(50, action_space)
-        self.fc_s = torch.nn.Linear(50, action_space)
+        self.fc1 = torch.nn.Linear(state_space, 1024)
+        self.fc2 = torch.nn.Linear(1024, 512)
+        self.fc3 = torch.nn.Linear(512, 512)
+        self.fc4 = torch.nn.Linear(512, 256)
+        self.fc5 = torch.nn.Linear(256, action_space)
 
         # Initialize neural network weights
         self.init_weights()
@@ -29,19 +31,29 @@ class Policy(torch.nn.Module):
     def forward(self, x):
         x = self.fc1(x)
         x = F.relu(x)
-        mean = self.fc_mean(x)
-        s = self.fc_s(x)
-        s = torch.sigmoid(s)
-        return mean, s
+
+        x = self.fc2(x)
+        x = F.relu(x)
+
+        x = self.fc3(x)
+        x = F.relu(x)
+
+        x = self.fc4(x)
+        x = F.relu(x)
+
+        x = self.fc5(x)
+        x = F.softmax(x, dim=-1)
+
+        return x
 
 
-class PolicyGradient(AgentInterface):
+class PolicyGradientNN(AgentInterface):
     def __init__(self, env, state_space, action_space, policy, player_id:int=1):
         super().__init__(env=env, player_id=player_id)
 
         self.train_device = "cpu" #if torch.cuda.is_available() else "cpu"
         self.policy = policy.to(self.train_device)
-        self.optimizer = torch.optim.RMSprop(policy.parameters(), lr=5e-3)
+        self.optimizer = torch.optim.Adam(policy.parameters(), lr=5e-3)
         self.batch_size = 1
         self.gamma = 0.98
 
@@ -77,15 +89,10 @@ class PolicyGradient(AgentInterface):
     def get_action(self, observation, evaluation=False, frame: np.array=None) -> int:
         observation = observation.flatten()
         x = torch.from_numpy(observation).float().to(self.train_device)#float().to(self.train_device)
-        mean, s = self.policy.forward(x)
-        if evaluation:
-            action = np.argmax(mean)
-        else:
-            action = Normal(loc=mean, scale=s).sample()
-
-        log_prob = Normal(loc=mean, scale=s).log_prob(action)
-        chosen_action = softmax_sample(torch.exp(log_prob))
-        return chosen_action, log_prob[chosen_action]
+        prob = self.policy.forward(x).detach().numpy()
+        print(prob)
+        chosen_action = softmax_sample(prob)
+        return chosen_action, np.log(prob[chosen_action])
 
     def store_outcome(self, log_action_prob, action_taken, reward):#observation, log_action_prob, action_taken, reward):
         # dist = torch.distributions.Categorical(action_output)
@@ -100,7 +107,7 @@ class PolicyGradient(AgentInterface):
 if __name__ == "__main__":
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
-    dummy = PolicyGradient(env=None, player_id=1)
+    dummy = PolicyGradientNN(env=None, player_id=1)
     dummy.test_attribute = 100
     name = "pg_test_model.mdl"
     dummy.save_model(name)

@@ -31,19 +31,20 @@ def main():
 
     env.set_names(player.get_name(), opponent.get_name())
     (ob1, ob2) = env.reset()
+    prev_ob1 = ob1
 
     reward_n = 0
     for episode_no in range(episodes):
         reward_sum, timesteps = 0, 0
         done = False
         while not done:
-            action1, log_prob = player.get_action(ob1)
+            action1, log_prob = player.get_action(ob1 - prev_ob1)
             prev_ob1 = ob1
             action2 = opponent.get_action()
 
             (ob1, ob2), (rew1, rew2), done, info = env.step((action1, action2))
 
-            player.store_outcome(prev_ob1, log_prob, action1, rew1)
+            player.store_outcome(log_prob, action1, rew1)#ob1, log_prob, action1, rew1)
 
             reward_sum += rew1
             reward_n += rew1
@@ -56,7 +57,7 @@ def main():
         (ob1, ob2) = env.reset()
         # plot(ob1) # plot the reset observation
         if ((episode_no +1 ) % 20) == 0:
-            print("episode {} over - reward = {}".format(episode_no + 1, reward_n / 10))
+            print("episode {} over - reward = {}".format(episode_no + 1, reward_n))
             reward_n = 0
 
         if ((episode_no + 1) % 10) == 0:

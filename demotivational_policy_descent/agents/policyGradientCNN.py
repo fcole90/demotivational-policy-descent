@@ -13,6 +13,10 @@ class Policy(torch.nn.Module):
         # Create layers etc
         self.state_space = state_space
         self.action_space = action_space
+
+        self.conv1 = torch.nn.Conv2d(3, 18, kernel_size=3, stride=1, padding=1)
+        self.pool = torch.nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+
         self.fc1 = torch.nn.Linear(state_space, 50)
         self.fc_mean = torch.nn.Linear(50, action_space)
         self.fc_s = torch.nn.Linear(50, action_space)
