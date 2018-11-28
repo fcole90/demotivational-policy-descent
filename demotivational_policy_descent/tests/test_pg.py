@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from demotivational_policy_descent.envs.pong import Pong
 from demotivational_policy_descent.agents.simple_ai import PongAi
-from demotivational_policy_descent.agents.policyGradient import PolicyGradient
+from demotivational_policy_descent.agents.policyGradient import PolicyGradient, Policy
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--headless", action="store_true", help="Run in headless mode")
@@ -22,7 +22,12 @@ def main():
     player_id = 1
     opponent_id = 3 - player_id
     opponent = PongAi(env, opponent_id)
-    player = PolicyGradient(env, player_id)
+
+    state_space = 3
+    action_space = 200 * 210 * 3
+
+    policy = Policy(state_space, action_space)
+    player = PolicyGradient(env, state_space, action_space, policy, player_id)
 
     env.set_names(player.get_name(), opponent.get_name())
     (ob1, ob2) = env.reset()
