@@ -5,8 +5,8 @@ import pickle
 
 import numpy as np
 
-from envs.pong import Pong
-from utils import io
+from demotivational_policy_descent.envs.pong import Pong
+from demotivational_policy_descent.utils import io
 
 
 class AgentInterface(abc.ABC):

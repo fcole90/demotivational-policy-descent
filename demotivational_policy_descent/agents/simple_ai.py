@@ -1,6 +1,6 @@
 import random
 
-from envs.pong import Pong
+from demotivational_policy_descent.envs.pong import Pong
 
 
 class PongAi(object):

@@ -1,9 +1,8 @@
 import logging
 
 import numpy as np
-import torch
 
-from agents.agent_interface import AgentInterface
+from demotivational_policy_descent.agents.agent_interface import AgentInterface
 
 
 class SimpleRL(AgentInterface):

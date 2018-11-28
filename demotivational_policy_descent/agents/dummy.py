@@ -2,7 +2,7 @@ import logging
 
 import numpy as np
 
-from agents.agent_interface import AgentInterface
+from demotivational_policy_descent.agents.agent_interface import AgentInterface
 
 
 class Dummy(AgentInterface):
