@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 from demotivational_policy_descent.agents.agent_interface import AgentInterface
-from demotivational_policy_descent.utils.pg import discount_rewards, softmax_sample
+from demotivational_policy_descent.utils.utils import discount_rewards, softmax_sample
 
 class Policy(torch.nn.Module):
     def __init__(self, state_space, action_space):
@@ -104,7 +104,7 @@ class PolicyGradientCNN(AgentInterface):
 if __name__ == "__main__":
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
-    dummy = PolicyGradient(env=None, player_id=1)
+    dummy = PolicyGradientCNN(env=None, player_id=1)
     dummy.test_attribute = 100
     name = "pg_test_model.mdl"
     dummy.save_model(name)

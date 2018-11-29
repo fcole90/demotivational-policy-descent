@@ -1,5 +1,9 @@
 import torch
 import gym
+from functools import reduce
+import operator
+import logging
+import os
 
 
 def softmax_sample(ps):
@@ -24,3 +28,21 @@ def get_space_dim(space):
         return space.shape[0]
     else:
         raise TypeError("Unknown space type:", t)
+
+
+def prod(iterable):
+    return reduce(operator.mul, list(iterable), 1)
+
+
+def load_logger(filename, level=None):
+    if level is None:
+        level = logging.INFO
+    path = os.path.join(os.pardir, "logs", filename + ".log")
+    logging.basicConfig(level=level,
+                        format='%(asctime)s %(levelname)-8s %(message)s',
+                        datefmt='%m-%d %H:%M',
+                        filename=path,
+                        filemode='a')
+    console = logging.StreamHandler()
+    logging.getLogger('').addHandler(console)
+    logging.info("Logger set up. Saving to '{}'".format(path))

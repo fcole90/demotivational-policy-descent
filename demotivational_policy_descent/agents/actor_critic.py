@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 from demotivational_policy_descent.agents.agent_interface import AgentInterface
-from demotivational_policy_descent.utils.pg import discount_rewards, softmax_sample
+from demotivational_policy_descent.utils.utils import discount_rewards, softmax_sample
 
 class Policy(torch.nn.Module):
     def __init__(self, state_space, action_space):
@@ -41,7 +41,7 @@ class ActorCritic(AgentInterface):
     def __init__(self, env, state_space, action_space, policy, player_id:int=1):
         super().__init__(env=env, player_id=player_id)
 
-        self.train_device = "cuda" #if torch.cuda.is_available() else "cpu"
+        self.train_device = "cpu" #if torch.cuda.is_available() else "cpu"
         self.policy = policy.to(self.train_device)
         self.optimizer = torch.optim.RMSprop(policy.parameters(), lr=5e-3)
         self.batch_size = 1
@@ -124,9 +124,6 @@ class ActorCritic(AgentInterface):
         log_prob = Normal(loc=mean, scale=s).log_prob(action)
         chosen_action = softmax_sample(torch.exp(log_prob))
         return chosen_action, log_prob[chosen_action], v
-
-    def fix_negative_strides(self, x):
-        return x - np.zeros_like(x)
 
     def store_outcome(self, observation, next_state, action_output, reward, done):
         try:

@@ -73,7 +73,7 @@ class AgentInterface(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_action(self, frame: np.array=None) -> int:
+    def get_action(self, frame: np.array) -> tuple:
         pass
 
     def get_name(self) -> str:

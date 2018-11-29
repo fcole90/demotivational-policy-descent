@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 from demotivational_policy_descent.agents.agent_interface import AgentInterface
-from demotivational_policy_descent.utils.pg import discount_rewards, softmax_sample
+from demotivational_policy_descent.utils.utils import discount_rewards, softmax_sample
 
 class Policy(torch.nn.Module):
     def __init__(self, state_space, action_space):
