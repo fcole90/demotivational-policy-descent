@@ -4,7 +4,7 @@ import logging
 from demotivational_policy_descent.environment.pong import Pong
 from demotivational_policy_descent.agents.simple_ai import PongAi
 from demotivational_policy_descent.agents.policy_gradient import PolicyGradient, StateMode, ActionMode
-from demotivational_policy_descent.utils.utils import prod, load_logger
+from demotivational_policy_descent.utils.utils import load_logger, alert_on_cuda
 
 __FRAME_SIZE__ = (200, 210, 3)
 
@@ -13,6 +13,7 @@ def main():
     parser.add_argument("--render", action="store_true", help="Run with rendering")
     parser.add_argument("--reduced", action="store_true", help="Run with only up and down")
     parser.add_argument("--average", action="store_true", help="Run in averaged greyscale")
+    parser.add_argument("--cuda", action="store_true", help="Run in cuda device")
     args = parser.parse_args()
 
     # Default values
@@ -23,6 +24,7 @@ def main():
     print("--reduced:", args.reduced)
     print("--average:", args.average)
     print("--render:", args.render)
+    print("--cuda:", args.cuda)
 
     if args.reduced is True:
         action_shape = ActionMode.reduced
@@ -34,6 +36,9 @@ def main():
 
     load_logger(filename=filename)
 
+    if args.cuda is True:
+        alert_on_cuda()
+
 
     env = Pong(headless=not args.render)
     episodes = 100000
@@ -42,7 +47,7 @@ def main():
     logging.info("Action shape: {}, State shape: {}".format(action_shape, state_shape))
 
     player_id = 1
-    player = PolicyGradient(env, state_shape, action_shape, player_id)
+    player = PolicyGradient(env, state_shape, action_shape, player_id, cuda=args.cuda)
 
     opponent_id = 3 - player_id
     opponent = PongAi(env, opponent_id)

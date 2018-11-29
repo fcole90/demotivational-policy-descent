@@ -47,7 +47,7 @@ class Policy(torch.nn.Module):
 
 
 class PolicyGradient(AgentInterface):
-    def __init__(self, env, state_shape, action_shape, player_id:int=1, policy=None):
+    def __init__(self, env, state_shape, action_shape, player_id:int=1, policy=None, cuda=False):
         """Agent implementing Policy Gradient.
 
         Parameters
@@ -74,7 +74,7 @@ class PolicyGradient(AgentInterface):
         if policy is None:
             policy = policy = Policy(state_shape, action_shape)
 
-        self.train_device = "cpu"
+        self.train_device = "cuda" if cuda is True else "cpu"
         self.state_shape = state_shape
         self.action_shape = action_shape
 
