@@ -36,6 +36,8 @@ def main():
 
     load_logger(filename=filename)
 
+    logging.info("*** New run ----------------------------------------------------------------------------------- ***")
+
     if args.cuda is True:
         alert_on_cuda()
 
