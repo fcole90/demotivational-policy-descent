@@ -39,7 +39,7 @@ class Policy(torch.nn.Module):
         return mean, s
 
 
-class PolicyGradient(AgentInterface):
+class PolicyGradientCNN(AgentInterface):
     def __init__(self, env, state_space, action_space, policy, player_id:int=1):
         super().__init__(env=env, player_id=player_id)
 

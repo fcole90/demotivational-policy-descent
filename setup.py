@@ -24,6 +24,6 @@ setup(
 Final project for the 2018 edition of the course of Reinforcement Learning
 at Aalto University, Finland.
 """,
-    install_requires=['gym', 'numpy', 'Pygame', 'matplotlib'],
+    install_requires=['gym', 'numpy', 'Pygame', 'matplotlib', 'torch'],
     python_requires='>=3.4'
 )

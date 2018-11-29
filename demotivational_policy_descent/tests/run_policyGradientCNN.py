@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from demotivational_policy_descent.environment.pong import Pong
 from demotivational_policy_descent.agents.simple_ai import PongAi
-from demotivational_policy_descent.agents.policyGradient import PolicyGradient, Policy
+from demotivational_policy_descent.agents.policy_gradient_CNN import PolicyGradientCNN, Policy
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--headless", action="store_true", help="Run in headless mode")
