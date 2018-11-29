@@ -27,7 +27,7 @@ def main():
     action_space = 3
 
     policy = Policy(state_space, action_space)
-    player = PolicyGradient(env, state_space, action_space, policy, player_id)
+    player = PolicyGradientCNN(env, state_space, action_space, policy, player_id)
 
     env.set_names(player.get_name(), opponent.get_name())
     (ob1, ob2) = env.reset()
