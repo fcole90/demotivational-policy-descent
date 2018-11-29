@@ -3,33 +3,43 @@ import logging
 
 from demotivational_policy_descent.environment.pong import Pong
 from demotivational_policy_descent.agents.simple_ai import PongAi
-from demotivational_policy_descent.agents.policy_gradient import PolicyGradient
+from demotivational_policy_descent.agents.policy_gradient import PolicyGradient, StateMode, ActionMode
 from demotivational_policy_descent.utils.utils import prod, load_logger
 
 __FRAME_SIZE__ = (200, 210, 3)
 
-class StateMode:
-    standard = prod(__FRAME_SIZE__)
-    average = prod(__FRAME_SIZE__[0:1])
-
-class ActionMode:
-    standard = 3
-    reduced = 2
-
-__ACTION_MODE__ = ActionMode.standard
-
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--headless", action="store_true", help="Run in headless mode")
+    parser.add_argument("--render", action="store_true", help="Run with rendering")
+    parser.add_argument("--reduced", action="store_true", help="Run with only up and down")
+    parser.add_argument("--average", action="store_true", help="Run in averaged greyscale")
     args = parser.parse_args()
 
-    load_logger("policy_gradient")
-
-    env = Pong(headless=args.headless)
-    episodes = 100000
-
+    # Default values
+    filename = "policy_gradient"
     state_shape = StateMode.standard
     action_shape = ActionMode.standard
+
+    print(args.reduced)
+    print(args.average)
+    print(args.render)
+
+    if args.reduced is True:
+        action_shape = ActionMode.reduced
+        filename += "_red_actions"
+
+    if args.average is True:
+        state_shape = StateMode.average
+        filename += "_average_grayscale"
+
+    load_logger(filename=filename)
+
+
+    env = Pong(headless=not args.render)
+    episodes = 100000
+
+
+    logging.info("Action shape: {}, State shape: {}".format(action_shape, state_shape))
 
     player_id = 1
     player = PolicyGradient(env, state_shape, action_shape, player_id)
@@ -44,6 +54,7 @@ def main():
     prev_ob1 = ob1
 
     reward = 0
+    logging.info("Beginning training..")
     for episode in range(episodes):
 
         # Reset accumulator variables
@@ -65,7 +76,7 @@ def main():
             reward += rew1
             timesteps += 1
 
-            if not args.headless:
+            if args.render is True:
                 env.render()
 
         # When done..
