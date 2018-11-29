@@ -42,7 +42,7 @@ def load_logger(filename, level=None):
                         format='%(asctime)s %(levelname)-8s %(message)s',
                         datefmt='%m-%d %H:%M',
                         filename=path,
-                        filemode='a')
+                        filemode='a+')
     console = logging.StreamHandler()
     logging.getLogger('').addHandler(console)
     logging.info("Logger set up. Saving to '{}'".format(path))
