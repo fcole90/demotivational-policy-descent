@@ -20,9 +20,9 @@ def main():
     state_shape = StateMode.standard
     action_shape = ActionMode.standard
 
-    print(args.reduced)
-    print(args.average)
-    print(args.render)
+    print("--reduced:", args.reduced)
+    print("--average:", args.average)
+    print("--render:", args.render)
 
     if args.reduced is True:
         action_shape = ActionMode.reduced
@@ -83,7 +83,7 @@ def main():
         (ob1, ob2) = env.reset()
         # plot(ob1) # plot the reset observation
         if ((episode +1 ) % 20) == 0:
-            logging.info("episode {} over - reward = {}".format(episode + 1, reward))
+            logging.info("{}: [{:8}/{}] reward={}".format(filename, episode + 1, episodes, reward))
             reward = 0
 
         if ((episode + 1) % 10) == 0:
