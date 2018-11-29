@@ -5,6 +5,15 @@ import operator
 import logging
 import os
 
+# Path to this file
+UTILS_FILE_PATH = os.path.realpath(__file__)
+
+# Path to main app
+SOURCE_ROOT_FILE_PATH = os.path.join(os.path.dirname(UTILS_FILE_PATH), os.pardir)
+
+# Logs path
+LOGS_PATH = os.path.join(SOURCE_ROOT_FILE_PATH, "logs")
+
 
 def softmax_sample(ps):
     dist = torch.distributions.Categorical(ps)
@@ -29,7 +38,7 @@ def get_space_dim(space):
     else:
         raise TypeError("Unknown space type:", t)
 
-
+# Same as sum but for product
 def prod(iterable):
     return reduce(operator.mul, list(iterable), 1)
 
@@ -37,7 +46,7 @@ def prod(iterable):
 def load_logger(filename, level=None):
     if level is None:
         level = logging.INFO
-    path = os.path.join(os.pardir, "logs", filename + ".log")
+    path = os.path.join(LOGS_PATH, filename + ".log")
     logging.basicConfig(level=level,
                         format='%(asctime)s %(levelname)-8s %(message)s',
                         datefmt='%m-%d %H:%M',
@@ -46,3 +55,5 @@ def load_logger(filename, level=None):
     console = logging.StreamHandler()
     logging.getLogger('').addHandler(console)
     logging.info("Logger set up. Saving to '{}'".format(path))
+
+
