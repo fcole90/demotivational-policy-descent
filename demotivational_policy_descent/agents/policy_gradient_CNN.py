@@ -11,16 +11,22 @@ from demotivational_policy_descent.utils.utils import discount_rewards, softmax_
 
 
 class PolicyCNN(torch.nn.Module):
+
+    def outputSize(in_size, kernel_size, stride, padding):
+        output = int((in_size - kernel_size + 2 * (padding)) / stride) + 1
+        return (output)
+
     def __init__(self, state_space, action_space):
         super().__init__()
         # Create layers etc
         self.state_space = state_space
         self.action_space = action_space
 
-        self.conv1 = torch.nn.Conv2d(3, 18, kernel_size=3, stride=1, padding=1)
+        self.conv1 = torch.nn.Conv2d(3, 20, kernel_size=3, stride=1, padding=1)
         self.pool = torch.nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
 
-        self.fc1 = torch.nn.Linear(state_space, 50)
+
+        self.fc1 = torch.nn.Linear(200, 50)
         self.fc_mean = torch.nn.Linear(50, action_space)
         self.fc_s = torch.nn.Linear(50, action_space)
 
@@ -34,7 +40,8 @@ class PolicyCNN(torch.nn.Module):
                 torch.nn.init.zeros_(m.bias)
 
     def forward(self, x):
-        # TODO: should be the fram itself
+        x = self.conv1(x)
+        x = self.pool(x)
         x = self.fc1(x)
         x = F.relu(x)
         mean = self.fc_mean(x)
@@ -57,8 +64,8 @@ class PolicyGradientCNN(PolicyGradient):
 
     def get_action(self, observation, evaluation=False, frame: np.array=None) -> tuple:
         # TODO: give the full fram to the convolutional
-        observation = observation.flatten()
-        x = torch.from_numpy(observation).float().to(self.train_device)#float().to(self.train_device)
+
+        x = torch.from_numpy(observation).float().to(self.train_device)
         mean, s = self.policy.forward(x)
         if evaluation:
             action = np.argmax(mean)

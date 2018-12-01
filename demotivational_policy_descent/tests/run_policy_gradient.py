@@ -81,7 +81,10 @@ def main():
 
     # Initialisation
     (ob1, ob2) = env.reset()
-    prev_ob1 = ob1
+    if args.preprocess:
+        prev_ob1 = PolicyGradient.preprocess(ob1)
+    else:
+        prev_ob1 = ob1
 
     reward = 0
     logging.info("Beginning training..")
@@ -94,16 +97,23 @@ def main():
         # Run until done
         done = False
         while done is False:
+            if args.preprocess:
+                ob1 = PolicyGradient.preprocess(ob1)
+
+            # import matplotlib.pyplot as plt
+            # plt.imshow(np.concatenate((ob1, prev_ob1),axis = 1), cmap="gray")
+            # plt.show()
+
             if args.combine is True:
-                action1, log_prob = player.get_action(np.concatenate((ob1, prev_ob1),axis = 1))
+                action1, prob = player.get_action(np.concatenate((ob1, prev_ob1),axis = 1))
             else:
-                action1, log_prob = player.get_action(ob1 - prev_ob1)
+                action1, prob = player.get_action(ob1 - prev_ob1)
             prev_ob1 = ob1
             action2 = opponent.get_action()
 
             (ob1, ob2), (rew1, rew2), done, info = env.step((action1, action2))
 
-            player.store_outcome(log_prob, rew1)
+            player.store_outcome(prob, rew1)
 
             rewards_sum += rew1
             reward += rew1
@@ -119,7 +129,7 @@ def main():
             logging.info("{}: [{:8}/{}] reward={}".format(filename, episode + 1, episodes, reward))
             reward = 0
 
-        if ((episode + 1) % 10) == 0:
+        if ((episode + 1) % 5) == 0:
             player.optimise_policy(episode)
 
     # Needs to be called in the end to shut down pygame
