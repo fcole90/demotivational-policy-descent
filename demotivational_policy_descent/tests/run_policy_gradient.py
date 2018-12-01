@@ -23,7 +23,7 @@ def main():
     # Default values
     filename = "policy_gradient"
     state_shape = StateMode.standard
-    cnn_state_shape = __FRAME_SIZE__
+    cnn_state_shape = list(__FRAME_SIZE__)
     action_shape = ActionMode.standard
 
     if args.cnn is True and args.dnn is True:
@@ -31,7 +31,7 @@ def main():
 
     if args.reduced is True:
         action_shape = ActionMode.reduced
-        cnn_state_shape = cnn_state_shape[0:2]
+        cnn_state_shape[2] = 1
         filename += "_red_actions"
 
     if args.average is True:

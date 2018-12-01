@@ -18,7 +18,7 @@ class PolicyDNN(torch.nn.Module):
         self.fc2 = torch.nn.Linear(1024, 512)
         self.fc3 = torch.nn.Linear(512, 512)
         self.fc4 = torch.nn.Linear(512, 256)
-        self.fc5 = torch.nn.Linear(1024, action_space)
+        self.fc5 = torch.nn.Linear(256, action_space)
 
         # Initialize neural network weights
         self.init_weights()

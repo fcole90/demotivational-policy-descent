@@ -1,6 +1,7 @@
 import argparse
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from demotivational_policy_descent.environment.pong import Pong
 from demotivational_policy_descent.agents.simple_ai import PongAi
@@ -13,9 +14,11 @@ def reduce_size(observation):
     return observation[:, 10:-10]
 
 
-def plot(observation, title=None):
+def plot(observation, title=None, bn=False):
     if title is not None:
         plt.title(title)
+    if bn is True:
+        observation = np.sum(observation, axis=2, dtype=float) / 3
     plt.imshow(observation / 255)
     plt.show()
 
@@ -32,6 +35,7 @@ def main():
     ob1, ob2 = env.reset()
 
     plot(reduce_size(ob1), "State 0, PL1")
+    plot(reduce_size(ob1), "State 0, PL1", bn=True)
     exit()
     plot(ob2, "State 0, PL2")
 
