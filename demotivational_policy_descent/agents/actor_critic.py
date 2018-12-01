@@ -125,6 +125,12 @@ class ActorCritic(AgentInterface):
         chosen_action = softmax_sample(torch.exp(log_prob))
         return chosen_action, log_prob[chosen_action], v
 
+    def fix_negative_strides(self, observation):
+        fixed_observation = observation.copy()
+        del observation
+        return fixed_observation
+
+
     def store_outcome(self, observation, next_state, action_output, reward, done):
         try:
             self.observations.append(torch.Tensor(observation))
