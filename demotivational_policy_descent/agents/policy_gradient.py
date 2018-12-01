@@ -39,9 +39,9 @@ class Policy(torch.nn.Module):
         # Create layers etc
         self.state_shape = state_shape
         self.action_shape = action_shape
-        self.fc1 = torch.nn.Linear(state_shape, 50)
-        self.fc_mean = torch.nn.Linear(50, action_shape)
-        self.fc_std = torch.nn.Linear(50, action_shape)
+        self.fc1 = torch.nn.Linear(state_shape, 200)
+        self.fc_mean = torch.nn.Linear(200, action_shape)
+        self.fc_std = torch.nn.Linear(200, action_shape)
 
         # Initialize neural network weights
         self.init_weights()

@@ -1,6 +1,8 @@
 import argparse
 import logging
 
+import numpy as np
+
 from demotivational_policy_descent.environment.pong import Pong
 from demotivational_policy_descent.agents.simple_ai import PongAi
 from demotivational_policy_descent.agents.policy_gradient import PolicyGradient, StateMode, ActionMode
@@ -16,6 +18,7 @@ def main():
     parser.add_argument("--reduced", action="store_true", help="Run with only up and down")
     parser.add_argument("--average", action="store_true", help="Run in averaged greyscale")
     parser.add_argument("--preprocess", action="store_true", help="Run preprocess image")
+    parser.add_argument("--combine", action="store_true", help="Run on stacked images")
     parser.add_argument("--cnn", action="store_true", help="Use a CNN instead than simple NN")
     parser.add_argument("--dnn", action="store_true", help="Use a DNN instead than simple NN")
     parser.add_argument("--cuda", action="store_true", help="Run in cuda device")
@@ -44,6 +47,7 @@ def main():
         cnn_state_shape = (100, 100, 1)
         filename += "_preprocessed_grayscale"
 
+
     load_logger(filename=filename)
 
     logging.info("*** New run ----------------------------------------------------------------------------------- ***")
@@ -52,8 +56,7 @@ def main():
         alert_on_cuda()
 
     env = Pong(headless=not args.render)
-    episodes = 100000
-
+    episodes = 500000
 
     logging.info("Action shape: {}, State shape: {}".format(action_shape, state_shape))
 
@@ -91,7 +94,10 @@ def main():
         # Run until done
         done = False
         while done is False:
-            action1, log_prob = player.get_action(ob1 - prev_ob1)
+            if args.combine is True:
+                action1, log_prob = player.get_action(np.concatenate((ob1, prev_ob1),axis = 1))
+            else:
+                action1, log_prob = player.get_action(ob1 - prev_ob1)
             prev_ob1 = ob1
             action2 = opponent.get_action()
 
