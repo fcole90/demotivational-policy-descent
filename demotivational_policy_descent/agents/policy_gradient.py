@@ -1,6 +1,6 @@
 import logging
 import torch.nn.functional as F
-from torch.distributions import Normal
+from torch.distributions import Normal, Categorical
 import numpy as np
 import torch
 
@@ -61,6 +61,48 @@ class Policy(torch.nn.Module):
         return mean, std
 
 
+class PolicyCategorical(torch.nn.Module):
+    def __init__(self, state_shape, action_shape):
+        super().__init__()
+
+        if type(state_shape) is tuple:
+            if len(state_shape) == 1:
+                state_shape = state_shape[0]
+            else:
+                raise ValueError("Expected int or tuple of len=1 for state_shape, found {}".format(state_shape))
+
+        if type(action_shape) is tuple:
+            if len(action_shape) == 1:
+                action_shape = action_shape[0]
+            else:
+                raise ValueError("Expected int or tuple of len=1 for action_shape, found {}".format(action_shape))
+
+
+        # Create layers etc
+        self.state_shape = state_shape
+        self.action_shape = action_shape
+        self.fc1 = torch.nn.Linear(state_shape, 256)
+        self.fc2 = torch.nn.Linear(256, 128)
+        self.fc3 = torch.nn.Linear(128, action_shape)
+
+        # Initialize neural network weights
+        #self.init_weights()
+
+    def init_weights(self):
+        for m in self.modules():
+            if type(m) is torch.nn.Linear:
+                torch.nn.init.uniform_(m.weight)
+                torch.nn.init.zeros_(m.bias)
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.fc2(x)
+        x = F.relu(x)
+        x = self.fc3(x)
+        return F.softmax(x, dim=-1)
+
+
 class PolicyGradient(AgentInterface):
     def __init__(self, env, state_shape, action_shape, player_id:int=1, policy=None, cuda=False):
         """Agent implementing Policy Gradient.
@@ -86,7 +128,7 @@ class PolicyGradient(AgentInterface):
         super().__init__(env=env, player_id=player_id)
 
         # Automatic default policy
-        self.__default_policy__ = Policy
+        self.__default_policy__ = PolicyCategorical
         if policy is None:
             policy = self.__default_policy__(state_shape, action_shape)
 
@@ -98,10 +140,10 @@ class PolicyGradient(AgentInterface):
         self.policy = policy.to(self.train_device)
 
         # NN Optimiser
-        self.optimizer = torch.optim.Adam(policy.parameters(), lr=1e-4)
+        self.optimizer = torch.optim.Adam(policy.parameters(), lr=0.0001)
 
         # Batch size for the training
-        self.batch_size = 1
+        self.batch_size = 50
 
         # Discount for previous rewards
         self.gamma = 0.98
@@ -175,23 +217,33 @@ class PolicyGradient(AgentInterface):
         self.shape_check_and_adapt(observation.shape)
 
         x = torch.from_numpy(observation).float().to(self.train_device)
-        mean, s = self.policy.forward(x)
+        prob = self.policy.forward(x)
 
-        if evaluation is True:
-            action = np.argmax(mean)
+        if evaluation:
+            action = torch.argmax(prob).item()
         else:
-            action = Normal(loc=mean, scale=s).sample()
+            action = softmax_sample(prob)
+        # print(action)
 
-        log_prob = Normal(loc=mean, scale=s).log_prob(action)
-        chosen_action = softmax_sample(torch.exp(log_prob))
+        return action, prob[action]
 
-        # If using only UP and DOWN add one to skip "STAY"
-        if self.action_shape == ActionMode.reduced:
-            return chosen_action + 1, log_prob[chosen_action]
+        # mean, s = self.policy.forward(x)
+        #
+        # if evaluation is True:
+        #     action = np.argmax(mean)
+        # else:
+        #     action = Normal(loc=mean, scale=s).sample()
+        #
+        # log_prob = Normal(loc=mean, scale=s).log_prob(action)
+        # chosen_action = softmax_sample(torch.exp(log_prob))
+        #
+        # # If using only UP and DOWN add one to skip "STAY"
+        # if self.action_shape == ActionMode.reduced:
+        #     return chosen_action + 1, log_prob[chosen_action]
+        #
+        # return chosen_action, log_prob[chosen_action]
 
-        return chosen_action, log_prob[chosen_action]
-
-    def store_outcome(self, log_action_prob, reward):
+    def store_outcome(self, action_prob, reward):
         """Store the outcome of the last action.
 
         Parameters
@@ -202,7 +254,8 @@ class PolicyGradient(AgentInterface):
             reward for the last action taken
 
         """
-        self.log_action_prob_list.append(log_action_prob)
+
+        self.log_action_prob_list.append(torch.log(action_prob))
         self.tensor_rewards_list.append(torch.Tensor([reward]))
 
     def optimise_policy(self, elapsed_episodes):
@@ -243,8 +296,6 @@ class PolicyGradient(AgentInterface):
         """
         self.optimizer.step()
         self.optimizer.zero_grad()
-
-
 
 
 if __name__ == "__main__":
