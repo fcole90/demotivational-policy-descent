@@ -20,7 +20,7 @@ class ActionMode:
     reduced = 2
 
 class Policy(torch.nn.Module):
-    def __init__(self, state_shape, action_shape):
+    def __init__(self, state_shape, action_shape, depth=200):
         super().__init__()
 
         if type(state_shape) is tuple:
@@ -39,9 +39,9 @@ class Policy(torch.nn.Module):
         # Create layers etc
         self.state_shape = state_shape
         self.action_shape = action_shape
-        self.fc1 = torch.nn.Linear(state_shape, 200)
-        self.fc_mean = torch.nn.Linear(200, action_shape)
-        self.fc_std = torch.nn.Linear(200, action_shape)
+        self.fc1 = torch.nn.Linear(state_shape, depth)
+        self.fc_mean = torch.nn.Linear(depth, action_shape)
+        self.fc_std = torch.nn.Linear(depth, action_shape)
 
         # Initialize neural network weights
         self.init_weights()
@@ -113,7 +113,6 @@ class PolicyGradient(AgentInterface):
         """Reset some attributes.
         """
         logging.debug("Resetting parameters...")
-        self.observations = list()
         self.log_action_prob_list = list()
         self.tensor_rewards_list = list()
         self.log_action_prob_list = list()

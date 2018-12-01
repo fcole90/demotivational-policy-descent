@@ -47,6 +47,10 @@ def main():
         cnn_state_shape = (100, 100, 1)
         filename += "_preprocessed_grayscale"
 
+    if args.combine is True:
+        state_shape *= 2
+        cnn_state_shape[0] *= 2
+
 
     load_logger(filename=filename)
 
