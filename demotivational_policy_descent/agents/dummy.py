@@ -25,8 +25,9 @@ if __name__ == "__main__":
     logger.setLevel(logging.DEBUG)
     dummy = Dummy(env=None, player_id=1)
     dummy.test_attribute = 100
-    name = "dummy_test_model.mdl"
-    dummy.save_model(name)
+    name = "dummy_test_model"
+    rename = dummy.save_model(name)
+    print("Renamed:", rename)
     dummy.test_attribute = 200
     dummy.load_model(name)
     assert dummy.test_attribute == 100

@@ -26,7 +26,7 @@ class AgentInterface(abc.ABC):
         filename: str
             a path to the model to load
         """
-        file_path = os.path.join(io.MODELS_PATH, filename)
+        file_path = os.path.join(io.MODELS_PATH, filename) + ".mdl"
 
         attribute_list = vars(self).keys()
 
@@ -49,19 +49,40 @@ class AgentInterface(abc.ABC):
                                      " does not have such attribute.".format(model.get_name(), attribute))
 
     def save_model(self, filename: str):
-        """Saves the model to file."""
+        """Saves the model to file.
+
+        Returns
+        -------
+        str:
+            final filename of the file
+        """
         if os.sep in filename:
             raise ValueError("A dir separator is contained in the filename."
                              " Just give your file a name, it will be loaded from {}".format(io.MODELS_PATH))
 
+        ext = ".mdl"
         file_path = os.path.join(io.MODELS_PATH, filename)
+
+        if os.path.exists(file_path + ext):
+            i = 1
+            file_path_edit = file_path + "_" + str(i) + ext
+            while os.path.exists(file_path_edit):
+                i += 1
+                file_path_edit = file_path + "_" + str(i) + ext
+            file_path = file_path_edit
+        else:
+            file_path += ext
 
         logging.debug("Saving model...")
 
         with open(file_path, "wb") as model_file:
             pickle.dump(self, model_file)
 
-        logging.debug("Saved!")
+        logging.info("Model saved as {}".format(file_path))
+
+        # Rebuild filename if edited
+        filename = "".join(file_path.split(os.sep)[-1].split(".")[:-1])
+        return filename
 
     @abc.abstractmethod
     def reset(self):

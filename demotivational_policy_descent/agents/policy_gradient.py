@@ -13,6 +13,7 @@ __FRAME_SIZE__ = (200, 210, 3)
 class StateMode:
     standard = prod(__FRAME_SIZE__)
     average = prod(__FRAME_SIZE__[0:2])
+    preprocessed = 100*100
 
 class ActionMode:
     standard = 3
@@ -21,6 +22,20 @@ class ActionMode:
 class Policy(torch.nn.Module):
     def __init__(self, state_shape, action_shape):
         super().__init__()
+
+        if type(state_shape) is tuple:
+            if len(state_shape) == 1:
+                state_shape = state_shape[0]
+            else:
+                raise ValueError("Expected int or tuple of len=1 for state_shape, found {}".format(state_shape))
+
+        if type(action_shape) is tuple:
+            if len(action_shape) == 1:
+                action_shape = action_shape[0]
+            else:
+                raise ValueError("Expected int or tuple of len=1 for action_shape, found {}".format(action_shape))
+
+
         # Create layers etc
         self.state_shape = state_shape
         self.action_shape = action_shape
@@ -71,8 +86,9 @@ class PolicyGradient(AgentInterface):
         super().__init__(env=env, player_id=player_id)
 
         # Automatic default policy
+        self.__default_policy__ = Policy
         if policy is None:
-            policy = policy = Policy(state_shape, action_shape)
+            policy = self.__default_policy__(state_shape, action_shape)
 
         self.train_device = "cuda" if cuda is True else "cpu"
         self.state_shape = state_shape
@@ -103,6 +119,32 @@ class PolicyGradient(AgentInterface):
         self.log_action_prob_list = list()
         logging.debug("Reset!")
 
+    def shape_check_and_adapt(self, observation_shape):
+        # Conformance check for policy and frame to have the right shape
+        actual_state_shape = observation_shape
+        if type(actual_state_shape) is tuple and len(actual_state_shape) == 1:
+            actual_state_shape = actual_state_shape[0]
+
+        if actual_state_shape != self.state_shape:
+            logging.warning("Expected frame size {} but found {}."
+                            " Using default policy with correct size.".format(self.state_shape, actual_state_shape))
+            logging.warning("If you want a different policy rerun the"
+                            " program with 'state_shape={}'".format(actual_state_shape))
+            self.state_shape = actual_state_shape
+            self.policy = self.__default_policy__(self.state_shape, self.action_shape).to(self.train_device)
+
+    @staticmethod
+    def preprocess(frame: np.array, down_x=2, down_y=2):
+        frame = PolicyGradient.average_black_white(frame)
+        frame = frame[:, 5:-5]
+        frame = frame[::down_y, ::down_x]  # downsample by factor of 2 and
+        frame[frame < 5] = 0  # Make the background full black
+        frame[frame > 0] = 255  # Make everything else full white
+        return frame
+
+    @staticmethod
+    def average_black_white(frame: np.array):
+        return np.sum(frame, axis=2, dtype=float) / 3
 
     def get_action(self, frame: np.array, evaluation=False) -> tuple:
         """Observe the environment and take an appropriate action.
@@ -120,16 +162,19 @@ class PolicyGradient(AgentInterface):
         tuple (inst, float)
             An action to take and its associated log probabilities of success.
         """
-        old_shape = frame.shape
+        given_shape = frame.shape
 
         if self.state_shape == StateMode.average:
             # Average values transforming in greyscale
-            frame = np.sum(frame, axis=2, dtype=float) / 3
+            frame = PolicyGradient.average_black_white(frame)
             if prod(frame.shape) != StateMode.average:
                 raise ValueError("Expected shape {}, found {}, original was {}".format(StateMode.average,
                                                                                        prod(frame.shape),
-                                                                                       prod(old_shape)))
-        observation = frame.flatten() / 255
+                                                                                       prod(given_shape)))
+        observation = frame.ravel() / 255
+
+        self.shape_check_and_adapt(observation.shape)
+
         x = torch.from_numpy(observation).float().to(self.train_device)
         mean, s = self.policy.forward(x)
 

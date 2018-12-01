@@ -15,6 +15,7 @@ def main():
     parser.add_argument("--render", action="store_true", help="Run with rendering")
     parser.add_argument("--reduced", action="store_true", help="Run with only up and down")
     parser.add_argument("--average", action="store_true", help="Run in averaged greyscale")
+    parser.add_argument("--preprocess", action="store_true", help="Run preprocess image")
     parser.add_argument("--cnn", action="store_true", help="Use a CNN instead than simple NN")
     parser.add_argument("--dnn", action="store_true", help="Use a DNN instead than simple NN")
     parser.add_argument("--cuda", action="store_true", help="Run in cuda device")
@@ -31,12 +32,17 @@ def main():
 
     if args.reduced is True:
         action_shape = ActionMode.reduced
-        cnn_state_shape[2] = 1
         filename += "_red_actions"
 
     if args.average is True:
         state_shape = StateMode.average
+        cnn_state_shape[2] = 1
         filename += "_average_grayscale"
+
+    if args.preprocess is True:
+        state_shape = StateMode.preprocessed
+        cnn_state_shape = (100, 100, 1)
+        filename += "_preprocessed_grayscale"
 
     load_logger(filename=filename)
 
@@ -44,7 +50,6 @@ def main():
 
     if args.cuda is True:
         alert_on_cuda()
-
 
     env = Pong(headless=not args.render)
     episodes = 100000
@@ -59,8 +64,10 @@ def main():
     if args.cnn is True:
         # Todo: use the tuple to set the shape of the first layer of convolution
         player = PolicyGradientCNN(env, cnn_state_shape, action_shape, player_id, cuda=args.cuda)
+        filename += "_CNN"
     elif args.dnn is True:
         player = PolicyGradientDNN(env, state_shape, action_shape, player_id, cuda=args.cuda)
+        filename += "_DNN"
     else:
         player = PolicyGradient(env, state_shape, action_shape, player_id, cuda=args.cuda)
 
@@ -111,6 +118,7 @@ def main():
 
     # Needs to be called in the end to shut down pygame
     env.end()
+    player.save_model(filename)
 
 if __name__ == "__main__":
     main()
