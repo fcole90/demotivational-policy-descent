@@ -6,10 +6,11 @@ import torch
 
 from demotivational_policy_descent.utils.utils import prod
 from demotivational_policy_descent.agents.agent_interface import AgentInterface
-from demotivational_policy_descent.agents.policy_gradient import PolicyGradient, PolicyNormal
+from demotivational_policy_descent.agents.policy_gradient import PolicyGradient, PolicyNormal, PolicyCategorical
 from demotivational_policy_descent.utils.utils import discount_rewards, softmax_sample
 
-class ActorCriticPolicy(PolicyNormal):
+
+class ActorCriticPolicyNormal(PolicyNormal):
     def __init__(self, state_shape, action_shape, depth=50):
         super().__init__(state_shape, action_shape, depth)
         self.fc_value = torch.nn.Linear(50, action_shape)
@@ -24,6 +25,48 @@ class ActorCriticPolicy(PolicyNormal):
         std = torch.sigmoid(std)
         value = self.fc_value(x)
         return mean, std, value
+
+
+class ActorCriticPolicyCategorical(PolicyCategorical):
+    def __init__(self, state_shape, action_shape):
+        super().__init__()
+
+        if type(state_shape) is tuple:
+            if len(state_shape) == 1:
+                state_shape = state_shape[0]
+            else:
+                raise ValueError("Expected int or tuple of len=1 for state_shape, found {}".format(state_shape))
+
+        if type(action_shape) is tuple:
+            if len(action_shape) == 1:
+                action_shape = action_shape[0]
+            else:
+                raise ValueError("Expected int or tuple of len=1 for action_shape, found {}".format(action_shape))
+
+
+        # Create layers etc
+        self.state_shape = state_shape
+        self.action_shape = action_shape
+        self.fc1 = torch.nn.Linear(state_shape, 256)
+        self.fc2 = torch.nn.Linear(256, 128)
+        self.fc3 = torch.nn.Linear(128, action_shape)
+
+        # Initialize neural network weights
+        #self.init_weights()
+
+    def init_weights(self):
+        for m in self.modules():
+            if type(m) is torch.nn.Linear:
+                torch.nn.init.uniform_(m.weight)
+                torch.nn.init.zeros_(m.bias)
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.fc2(x)
+        x = F.relu(x)
+        x = self.fc3(x)
+        return F.softmax(x, dim=-1)
 
 
 class ActorCritic(PolicyGradient):
