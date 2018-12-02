@@ -210,7 +210,7 @@ class PolicyGradient(AgentInterface):
             An action to take and its associated log probabilities of success.
         """
         initial_frame_shape = frame.shape
-        combine_mul = 2 if combine is True else 1  # multiplicator to square the circle
+        combine_mul = 2 if combine is True else 1  # multiplicator to make the lathes count when checking shapes
 
         if self.state_shape == StateMode.average * combine_mul:
             # Average values transforming in greyscale
@@ -239,7 +239,7 @@ class PolicyGradient(AgentInterface):
         else:
             observation = observation - self.prev_observation
 
-        # Make the frame flat
+        # Make the observation flat
         observation = observation.ravel() / 255
 
         # Sanity check to have the right NN
