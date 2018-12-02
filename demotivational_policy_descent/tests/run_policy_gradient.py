@@ -5,7 +5,7 @@ import numpy as np
 
 from demotivational_policy_descent.environment.pong import Pong
 from demotivational_policy_descent.agents.simple_ai import PongAi
-from demotivational_policy_descent.agents.policy_gradient import PolicyGradient, StateMode, ActionMode
+from demotivational_policy_descent.agents.policy_gradient import PolicyGradient, StateMode, ActionMode, PolicyNormal
 from demotivational_policy_descent.agents.policy_gradient_CNN import PolicyGradientCNN
 from demotivational_policy_descent.agents.policy_gradient_DNN import PolicyGradientDNN
 from demotivational_policy_descent.utils.utils import load_logger, alert_on_cuda
@@ -15,6 +15,7 @@ __FRAME_SIZE__ = (200, 210, 3)
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--render", action="store_true", help="Run with rendering")
+    parser.add_argument("--normal", action="store_true", help="Run with a normal distribution")
     parser.add_argument("--reduced", action="store_true", help="Run with only up and down")
     parser.add_argument("--average", action="store_true", help="Run in averaged greyscale")
     parser.add_argument("--preprocess", action="store_true", help="Run preprocess image")
@@ -30,8 +31,12 @@ def main():
     cnn_state_shape = list(__FRAME_SIZE__)
     action_shape = ActionMode.standard
 
+    # Check incompatible combinations
     if args.cnn is True and args.dnn is True:
         raise ValueError("Only one can be selected among cnn and dnn.")
+
+    if any([args.cnn, args.dnn]) is True and args.normal is True:
+        raise ValueError("Selecting the distribution is not currently supported for CNN and DNN")
 
     if args.reduced is True:
         action_shape = ActionMode.reduced
@@ -75,6 +80,10 @@ def main():
     elif args.dnn is True:
         player = PolicyGradientDNN(env, state_shape, action_shape, player_id, cuda=args.cuda)
         filename += "_DNN"
+    elif args.normal is True:
+        filename += "_normal"
+        player = PolicyGradient(env, state_shape, action_shape, player_id, cuda=args.cuda,
+                                policy=PolicyNormal(state_shape, action_shape))
     else:
         player = PolicyGradient(env, state_shape, action_shape, player_id, cuda=args.cuda)
 

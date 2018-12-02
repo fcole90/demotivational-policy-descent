@@ -19,7 +19,7 @@ class ActionMode:
     standard = 3
     reduced = 2
 
-class Policy(torch.nn.Module):
+class PolicyNormal(torch.nn.Module):
     def __init__(self, state_shape, action_shape, depth=200):
         super().__init__()
 
@@ -137,6 +137,7 @@ class PolicyGradient(AgentInterface):
         self.action_shape = action_shape
 
         # Policy of the agent
+        self.current_policy_class = policy.__class__
         self.policy = policy.to(self.train_device)
 
         # NN Optimiser
@@ -168,7 +169,9 @@ class PolicyGradient(AgentInterface):
 
         if actual_state_shape != self.state_shape:
             logging.warning("Expected frame size {} but found {}."
-                            " Using default policy with correct size.".format(self.state_shape, actual_state_shape))
+                            " Using default policy ({}) with correct size.".format(self.__default_policy__.__name__,
+                                                                                   self.state_shape,
+                                                                                   actual_state_shape))
             logging.warning("If you want a different policy rerun the"
                             " program with 'state_shape={}'".format(actual_state_shape))
             self.state_shape = actual_state_shape
@@ -217,33 +220,44 @@ class PolicyGradient(AgentInterface):
         self.shape_check_and_adapt(observation.shape)
 
         x = torch.from_numpy(observation).float().to(self.train_device)
-        prob = self.policy.forward(x)
 
-        if evaluation:
-            action = torch.argmax(prob).item()
+        if issubclass(self.current_policy_class, PolicyCategorical):
+
+            # Categorical Version
+            prob = self.policy.forward(x)
+
+            if evaluation:
+                action = torch.argmax(prob).item()
+            else:
+                action = softmax_sample(prob)
+
+            chosen_action = action
+            chosen_log_prob = torch.log(prob[action])
+
         else:
-            action = softmax_sample(prob)
-        # print(action)
 
-        return action, prob[action]
+            # Gaussian version
+            mean, s = self.policy.forward(x)
 
-        # mean, s = self.policy.forward(x)
-        #
-        # if evaluation is True:
-        #     action = np.argmax(mean)
-        # else:
-        #     action = Normal(loc=mean, scale=s).sample()
-        #
-        # log_prob = Normal(loc=mean, scale=s).log_prob(action)
-        # chosen_action = softmax_sample(torch.exp(log_prob))
-        #
-        # # If using only UP and DOWN add one to skip "STAY"
-        # if self.action_shape == ActionMode.reduced:
-        #     return chosen_action + 1, log_prob[chosen_action]
-        #
-        # return chosen_action, log_prob[chosen_action]
+            if evaluation is True:
+                action = np.argmax(mean)
+            else:
+                action = Normal(loc=mean, scale=s).sample()
 
-    def store_outcome(self, action_prob, reward):
+            log_prob = Normal(loc=mean, scale=s).log_prob(action)
+
+            chosen_action = softmax_sample(log_prob)
+            chosen_log_prob = log_prob[chosen_action]
+
+        # --- Valid for all versions ---
+
+        # If using only UP and DOWN add one to skip "STAY"
+        if self.action_shape == ActionMode.reduced:
+            chosen_action += 1
+
+        return chosen_action, chosen_log_prob
+
+    def store_outcome(self, log_action_prob, reward):
         """Store the outcome of the last action.
 
         Parameters
@@ -255,7 +269,7 @@ class PolicyGradient(AgentInterface):
 
         """
 
-        self.log_action_prob_list.append(torch.log(action_prob))
+        self.log_action_prob_list.append(log_action_prob)
         self.tensor_rewards_list.append(torch.Tensor([reward]))
 
     def optimise_policy(self, elapsed_episodes):

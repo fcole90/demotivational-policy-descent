@@ -6,10 +6,10 @@ import torch
 
 from demotivational_policy_descent.utils.utils import prod
 from demotivational_policy_descent.agents.agent_interface import AgentInterface
-from demotivational_policy_descent.agents.policy_gradient import PolicyGradient, Policy
+from demotivational_policy_descent.agents.policy_gradient import PolicyGradient, PolicyNormal
 from demotivational_policy_descent.utils.utils import discount_rewards, softmax_sample
 
-class ActorCriticPolicy(Policy):
+class ActorCriticPolicy(PolicyNormal):
     def __init__(self, state_shape, action_shape, depth=50):
         super().__init__(state_shape, action_shape, depth)
         self.fc_value = torch.nn.Linear(50, action_shape)
@@ -43,6 +43,8 @@ class ActorCritic(PolicyGradient):
         self.dones_list = list()
         self.observations_list = list()
         self.next_observations_list = list()
+
+    def get_action(self, frame: np.array, evaluation=False):
 
     def fix_negative_strides(self, observation):
         fixed_observation = observation.copy()
