@@ -180,8 +180,8 @@ class PolicyGradient(AgentInterface):
     @staticmethod
     def preprocess(frame: np.array, down_x=2, down_y=2):
         frame = PolicyGradient.average_black_white(frame)
-        frame = frame[:, 5:-5]
-        frame = frame[::down_y, ::down_x]  # downsample by factor of 2 and
+        frame = frame[:, 5:-5]  # Make it as large as high
+        frame = frame[::down_y, ::down_x]  # Downsample by the specified amount
         frame[frame < 5] = 0  # Make the background full black
         frame[frame > 0] = 255  # Make everything else full white
         return frame
@@ -190,7 +190,7 @@ class PolicyGradient(AgentInterface):
     def average_black_white(frame: np.array):
         return np.sum(frame, axis=2, dtype=float) / 3
 
-    def get_action(self, frame: np.array, evaluation=False) -> tuple:
+    def get_action(self, frame: np.array, evaluation=False, combine=False) -> tuple:
         """Observe the environment and take an appropriate action.
 
         Parameters
@@ -207,14 +207,24 @@ class PolicyGradient(AgentInterface):
             An action to take and its associated log probabilities of success.
         """
         given_shape = frame.shape
+        combine_mul = 2 if combine is True else 1  # multiplicator to square the circle
 
-        if self.state_shape == StateMode.average:
+        if self.state_shape == StateMode.average * combine_mul:
             # Average values transforming in greyscale
             frame = PolicyGradient.average_black_white(frame)
-            if prod(frame.shape) != StateMode.average:
-                raise ValueError("Expected shape {}, found {}, original was {}".format(StateMode.average,
+            if prod(frame.shape) != StateMode.average * combine_mul:
+                logging.warning("Expected shape {}, found {}, original was {}".format(StateMode.average,
                                                                                        prod(frame.shape),
                                                                                        prod(given_shape)))
+        elif self.state_shape == StateMode.preprocessed * combine_mul:
+            # Preprocess the frame in greyscale, and downsample it.
+            frame = PolicyGradient.preprocess(frame)
+            if prod(frame.shape) != StateMode.preprocessed * combine_mul:
+                logging.warning("Expected shape {}, found {}, original was {}".format(StateMode.average,
+                                                                                  prod(frame.shape),
+                                                                                  prod(given_shape)))
+
+
         observation = frame.ravel() / 255
 
         self.shape_check_and_adapt(observation.shape)

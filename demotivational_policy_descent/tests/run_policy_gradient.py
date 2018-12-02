@@ -55,6 +55,7 @@ def main():
     if args.combine is True:
         state_shape *= 2
         cnn_state_shape[0] *= 2
+        filename += "_combine"
 
 
     load_logger(filename=filename)
@@ -94,10 +95,7 @@ def main():
 
     # Initialisation
     (ob1, ob2) = env.reset()
-    if args.preprocess:
-        prev_ob1 = PolicyGradient.preprocess(ob1)
-    else:
-        prev_ob1 = ob1
+    prev_ob1 = ob1
 
     reward = 0
     logging.info("Beginning training..")
@@ -110,13 +108,6 @@ def main():
         # Run until done
         done = False
         while done is False:
-            if args.preprocess:
-                ob1 = PolicyGradient.preprocess(ob1)
-
-            # import matplotlib.pyplot as plt
-            # plt.imshow(np.concatenate((ob1, prev_ob1),axis = 1), cmap="gray")
-            # plt.show()
-
             if args.combine is True:
                 action1, prob = player.get_action(np.concatenate((ob1, prev_ob1),axis = 1))
             else:
