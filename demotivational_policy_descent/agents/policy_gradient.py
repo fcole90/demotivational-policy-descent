@@ -193,7 +193,11 @@ class PolicyGradient(AgentInterface):
     def store_prev(self, frame: np.array, combine=False):
         self.get_action(frame, combine=combine, store_prev_mode=True)
 
-    def get_action(self, frame: np.array, evaluation=False, combine=False, store_prev_mode=False) -> tuple:
+    def get_action(self, frame: np.array,
+                   evaluation=False,
+                   combine=False,
+                   store_prev_mode=False,
+                   get_value=False) -> tuple:
         """Observe the environment and take an appropriate action.
 
         Parameters
@@ -203,6 +207,15 @@ class PolicyGradient(AgentInterface):
         evaluation: bool (Optional, default: False)
             Instead of sampling from a distribution, always exploit
             to get the best value.
+        combine: bool (Optional, default: False)
+            If true combine the frames by stacking them on axis 1,
+            otherwise subtract the previous one from the current one
+        store_prev_mode: bool (Optional, default: False)
+            Doesn't provide any action, but only runs the part pertaining
+            to frame preprocessing.
+        get_value: bool (Optional, default: False)
+            Used in an actor critic context, allows to also get a
+            value for the current frame.
 
         Returns
         -------
@@ -250,7 +263,10 @@ class PolicyGradient(AgentInterface):
         if issubclass(self.current_policy_class, PolicyCategorical):
 
             # Categorical Version
-            prob = self.policy.forward(x)
+            if get_value is True:
+                prob, v = self.policy.forward(x)
+            else:
+                prob = self.policy.forward(x)
 
             if evaluation:
                 action = torch.argmax(prob).item()
@@ -261,9 +277,11 @@ class PolicyGradient(AgentInterface):
             chosen_log_prob = torch.log(prob[action])
 
         else:
-
             # Gaussian version
-            mean, s = self.policy.forward(x)
+            if get_value is True:
+                mean, s, v = self.policy.forward(x)
+            else:
+                mean, s = self.policy.forward(x)
 
             if evaluation is True:
                 action = np.argmax(mean)
@@ -281,7 +299,11 @@ class PolicyGradient(AgentInterface):
         if self.action_shape == ActionMode.reduced:
             chosen_action += 1
 
-        return chosen_action, chosen_log_prob
+
+        if get_value is True:
+            return chosen_action, chosen_log_prob, v
+        else:
+            return chosen_action, chosen_log_prob
 
     def store_outcome(self, log_action_prob, reward):
         """Store the outcome of the last action.

@@ -44,7 +44,11 @@ class ActorCritic(PolicyGradient):
         self.observations_list = list()
         self.next_observations_list = list()
 
-    def get_action(self, frame: np.array, evaluation=False):
+    def get_action_value(self, frame: np.array,
+                   evaluation=False,
+                   combine=False,
+                   store_prev_mode=False) -> tuple:
+        return super().get_action(frame, evaluation, combine, store_prev_mode, get_value=True)
 
     def fix_negative_strides(self, observation):
         fixed_observation = observation.copy()
