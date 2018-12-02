@@ -190,7 +190,10 @@ class PolicyGradient(AgentInterface):
     def average_black_white(frame: np.array):
         return np.sum(frame, axis=2, dtype=float) / 3
 
-    def get_action(self, frame: np.array, evaluation=False, combine=False) -> tuple:
+    def store_prev(self, frame: np.array, combine=False):
+        self.get_action(frame, combine=combine, store_prev_mode=True)
+
+    def get_action(self, frame: np.array, evaluation=False, combine=False, store_prev_mode=False) -> tuple:
         """Observe the environment and take an appropriate action.
 
         Parameters
@@ -206,27 +209,40 @@ class PolicyGradient(AgentInterface):
         tuple (inst, float)
             An action to take and its associated log probabilities of success.
         """
-        given_shape = frame.shape
+        initial_frame_shape = frame.shape
         combine_mul = 2 if combine is True else 1  # multiplicator to square the circle
 
         if self.state_shape == StateMode.average * combine_mul:
             # Average values transforming in greyscale
-            frame = PolicyGradient.average_black_white(frame)
-            if prod(frame.shape) != StateMode.average * combine_mul:
-                logging.warning("Expected shape {}, found {}, original was {}".format(StateMode.average,
-                                                                                       prod(frame.shape),
-                                                                                       prod(given_shape)))
+            observation = PolicyGradient.average_black_white(frame)
+            if prod(observation.shape) != StateMode.average:
+                logging.warning("[Avg] Expected shape {}, found {}, original was {}".format(StateMode.average,
+                                                                                       prod(observation.shape),
+                                                                                       prod(initial_frame_shape)))
         elif self.state_shape == StateMode.preprocessed * combine_mul:
             # Preprocess the frame in greyscale, and downsample it.
-            frame = PolicyGradient.preprocess(frame)
-            if prod(frame.shape) != StateMode.preprocessed * combine_mul:
-                logging.warning("Expected shape {}, found {}, original was {}".format(StateMode.average,
-                                                                                  prod(frame.shape),
-                                                                                  prod(given_shape)))
+            observation = PolicyGradient.preprocess(frame)
+            if prod(observation.shape) != StateMode.preprocessed:
+                logging.warning("[Prp] Expected shape {}, found {}, original was {}".format(StateMode.average,
+                                                                                  prod(observation.shape),
+                                                                                  prod(initial_frame_shape)))
 
+        # Always store the previous observation, already processed
+        self.prev_observation = observation
+        if store_prev_mode is True:
+            # If only storing the prev_observation (iteration 0), then exit
+            return (None, None)
 
-        observation = frame.ravel() / 255
+        # How do we combine the frames?
+        if combine is True:
+            observation = np.concatenate((observation, self.prev_observation), axis=1)
+        else:
+            observation = observation - self.prev_observation
 
+        # Make the frame flat
+        observation = observation.ravel() / 255
+
+        # Sanity check to have the right NN
         self.shape_check_and_adapt(observation.shape)
 
         x = torch.from_numpy(observation).float().to(self.train_device)

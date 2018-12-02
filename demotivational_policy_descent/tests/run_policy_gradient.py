@@ -29,6 +29,7 @@ def main():
     filename = "policy_gradient"
     state_shape = StateMode.standard
     cnn_state_shape = list(__FRAME_SIZE__)
+    print(cnn_state_shape)
     action_shape = ActionMode.standard
 
     # Check incompatible combinations
@@ -49,7 +50,7 @@ def main():
 
     if args.preprocess is True:
         state_shape = StateMode.preprocessed
-        cnn_state_shape = (100, 100, 1)
+        cnn_state_shape = [100, 100, 1]
         filename += "_preprocessed_grayscale"
 
     if args.combine is True:
@@ -95,7 +96,7 @@ def main():
 
     # Initialisation
     (ob1, ob2) = env.reset()
-    prev_ob1 = ob1
+    player.store_prev(ob1, combine=args.combine)
 
     reward = 0
     logging.info("Beginning training..")
@@ -108,11 +109,7 @@ def main():
         # Run until done
         done = False
         while done is False:
-            if args.combine is True:
-                action1, prob = player.get_action(np.concatenate((ob1, prev_ob1),axis = 1))
-            else:
-                action1, prob = player.get_action(ob1 - prev_ob1)
-            prev_ob1 = ob1
+            action1, prob = player.get_action(ob1, combine=args.combine)
             action2 = opponent.get_action()
 
             (ob1, ob2), (rew1, rew2), done, info = env.step((action1, action2))
