@@ -109,12 +109,12 @@ def main():
         # Run until done
         done = False
         while done is False:
-            action1, prob = player.get_action(ob1, combine=args.combine)
+            action1, log_prob = player.get_action(ob1, combine=args.combine)
             action2 = opponent.get_action()
 
             (ob1, ob2), (rew1, rew2), done, info = env.step((action1, action2))
 
-            player.store_outcome(prob, rew1)
+            player.store_outcome(log_prob, rew1)
 
             rewards_sum += rew1
             reward += rew1

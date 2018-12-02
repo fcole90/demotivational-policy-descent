@@ -6,7 +6,7 @@ import numpy as np
 from demotivational_policy_descent.environment.pong import Pong
 from demotivational_policy_descent.agents.simple_ai import PongAi
 from demotivational_policy_descent.agents.policy_gradient import PolicyGradient, StateMode, ActionMode
-from demotivational_policy_descent.agents.actor_critic import ActorCritic
+from demotivational_policy_descent.agents.actor_critic import ActorCritic, ActorCriticPolicyCategorical, ActorCriticPolicyNormal
 from demotivational_policy_descent.utils.utils import load_logger, alert_on_cuda
 
 __FRAME_SIZE__ = (200, 210, 3)
@@ -41,12 +41,13 @@ def main():
 
     if args.preprocess is True:
         state_shape = StateMode.preprocessed
-        cnn_state_shape = (100, 100, 1)
+        cnn_state_shape = [100, 100, 1]
         filename += "_preprocessed_grayscale"
 
     if args.combine is True:
         state_shape *= 2
         cnn_state_shape[0] *= 2
+        filename += "_combine"
 
 
     load_logger(filename=filename)
@@ -63,7 +64,14 @@ def main():
 
     player_id = 1
 
-    player = ActorCritic(env, state_shape, action_shape, player_id, cuda=args.cuda)
+    if args.normal is True:
+        filename += "_normal"
+        player = ActorCritic(env, state_shape, action_shape, player_id, cuda=args.cuda,
+                                policy=ActorCriticPolicyNormal(state_shape, action_shape))
+    else:
+        player = ActorCritic(env, state_shape, action_shape, player_id, cuda=args.cuda,
+                     policy=ActorCriticPolicyCategorical(state_shape, action_shape))
+
 
     opponent_id = 3 - player_id
     opponent = PongAi(env, opponent_id)
@@ -72,7 +80,7 @@ def main():
 
     # Initialisation
     (ob1, ob2) = env.reset()
-    prev_ob1 = ob1
+    player.store_prev(ob1, combine=args.combine)
 
     reward = 0
     logging.info("Beginning training..")
@@ -86,16 +94,12 @@ def main():
         # Run until done
         done = False
         while done is False:
-            if args.combine is True:
-                action1, log_prob = player.get_action(np.concatenate((ob1, prev_ob1), axis=1))
-            else:
-                action1, log_prob = player.get_action(ob1 - prev_ob1)
-            prev_ob1 = ob1
+            action1, prob = player.get_action(ob1, combine=args.combine)
             action2 = opponent.get_action()
 
             (ob1, ob2), (rew1, rew2), done, info = env.step((action1, action2))
 
-            player.store_outcome(log_prob, rew1)
+            player.store_outcome(log_prob, rew1, )
 
             rewards_sum += rew1
             reward += rew1
