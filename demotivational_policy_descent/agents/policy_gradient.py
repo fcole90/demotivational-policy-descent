@@ -143,6 +143,11 @@ class PolicyGradient(AgentInterface):
         # Call reset here to avoid code duplication!
         self.reset()
 
+    def debug_attr(self):
+        attribute_list = vars(self).keys()
+        for attribute in attribute_list:
+            print(attribute, ": ", type(getattr(self, attribute)), sep="")
+
     def reset(self):
         """Reset some attributes.
         """

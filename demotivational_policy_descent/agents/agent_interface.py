@@ -15,7 +15,6 @@ class AgentInterface(abc.ABC):
             logging.debug("Running with empty env for debugging purposes")
         elif type(env) is not Pong:
             raise TypeError("Expected type(env) == 'Pong', found '{}' instead.".format(type(env)))
-        self.env = env
         self.player_id = player_id
 
     def load_model(self, filename: str):

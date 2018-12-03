@@ -32,7 +32,6 @@ def main():
     filename = "policy_gradient"
     state_shape = StateMode.standard
     cnn_state_shape = list(__FRAME_SIZE__)
-    print(cnn_state_shape)
     action_shape = ActionMode.standard
 
     # Check incompatible combinations
@@ -140,7 +139,7 @@ def main():
         if ((episode + 1) % 5) == 0:
             player.optimise_policy(episode)
 
-        if ((episode + 1) > 50000) and ((episode + 1) % 5000) == 0:
+        if ((episode + 1) > 10000) and ((episode + 1) % 5000) == 0:
             try:
                 player.save_model("tmp_" + filename + "_{}ep".format(episode))
             except Exception as e:
