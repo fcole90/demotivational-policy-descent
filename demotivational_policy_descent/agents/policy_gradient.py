@@ -181,7 +181,7 @@ class PolicyGradient(AgentInterface):
     def average_black_white(frame: np.array):
         return np.sum(frame, axis=2, dtype=float) / 3
 
-    def store_prev(self, frame: np.array, combine=False):
+    def set_prev_observation(self, frame: np.array, combine=False):
         self.get_action(frame, combine=combine, store_prev_mode=True)
 
     def get_action(self, frame: np.array,
@@ -233,11 +233,17 @@ class PolicyGradient(AgentInterface):
                                                                                   prod(initial_frame_shape)))
 
         # Always store the previous observation, already processed
-        prev_observation = self.prev_observation
-        self.prev_observation = observation
         if store_prev_mode is True:
             # If only storing the prev_observation (iteration 0), then exit
+            self.prev_observation = observation
             return (None, None)
+        else:
+            try:
+                prev_observation = self.prev_observation
+                self.prev_observation = observation
+            except AttributeError:
+                raise ValueError("You called 'get_action' but you did not 'set_prev_observation'.")
+
 
         # How do we combine the frames?
         if combine is True:
@@ -270,7 +276,7 @@ class PolicyGradient(AgentInterface):
                 action = softmax_sample(prob)
 
             chosen_action = action
-            chosen_log_prob = torch.log(prob[action]).detach()
+            chosen_log_prob = torch.log(prob[action])
 
         else:
             # Gaussian version

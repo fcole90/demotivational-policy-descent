@@ -81,7 +81,7 @@ def main():
 
     # Initialisation
     (ob1, ob2) = env.reset()
-    player.store_prev(ob1, combine=args.combine)
+    player.set_prev_observation(ob1, combine=args.combine)
 
     reward = 0
     logging.info("Beginning training..")
