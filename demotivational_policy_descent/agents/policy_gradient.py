@@ -62,7 +62,7 @@ class PolicyNormal(torch.nn.Module):
 
 
 class PolicyCategorical(torch.nn.Module):
-    def __init__(self, state_shape, action_shape):
+    def __init__(self, state_shape, action_shape, depth_last=128):
         super().__init__()
 
         if type(state_shape) is tuple:
@@ -82,17 +82,8 @@ class PolicyCategorical(torch.nn.Module):
         self.state_shape = state_shape
         self.action_shape = action_shape
         self.fc1 = torch.nn.Linear(state_shape, 256)
-        self.fc2 = torch.nn.Linear(256, 128)
-        self.fc3 = torch.nn.Linear(128, action_shape)
-
-        # Initialize neural network weights
-        #self.init_weights()
-
-    def init_weights(self):
-        for m in self.modules():
-            if type(m) is torch.nn.Linear:
-                torch.nn.init.uniform_(m.weight)
-                torch.nn.init.zeros_(m.bias)
+        self.fc2 = torch.nn.Linear(256, depth_last)
+        self.fc3 = torch.nn.Linear(depth_last, action_shape)
 
     def forward(self, x):
         x = self.fc1(x)
@@ -224,6 +215,7 @@ class PolicyGradient(AgentInterface):
         """
         initial_frame_shape = frame.shape
         combine_mul = 2 if combine is True else 1  # multiplicator to make the lathes count when checking shapes
+        observation = frame
 
         if self.state_shape == StateMode.average * combine_mul:
             # Average values transforming in greyscale
@@ -255,6 +247,9 @@ class PolicyGradient(AgentInterface):
         # Make the observation flat
         observation = observation.ravel() / 255
 
+        # Can be used by children implementations
+        self.finalised_observation = observation
+
         # Sanity check to have the right NN
         self.shape_check_and_adapt(observation.shape)
 
@@ -274,7 +269,7 @@ class PolicyGradient(AgentInterface):
                 action = softmax_sample(prob)
 
             chosen_action = action
-            chosen_log_prob = torch.log(prob[action])
+            chosen_log_prob = torch.log(prob[action]).detach()
 
         else:
             # Gaussian version

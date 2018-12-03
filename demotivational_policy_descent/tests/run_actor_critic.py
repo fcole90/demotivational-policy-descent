@@ -14,6 +14,7 @@ __FRAME_SIZE__ = (200, 210, 3)
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--render", action="store_true", help="Run with rendering")
+    parser.add_argument("--normal", action="store_true", help="Run with a normal distribution")
     parser.add_argument("--reduced", action="store_true", help="Run with only up and down")
     parser.add_argument("--average", action="store_true", help="Run in averaged greyscale")
     parser.add_argument("--preprocess", action="store_true", help="Run preprocess image")
@@ -22,13 +23,13 @@ def main():
     args = parser.parse_args()
 
     # Default values
-    filename = "policy_gradient"
+    filename = "actor_critic"
     state_shape = StateMode.standard
     cnn_state_shape = list(__FRAME_SIZE__)
     action_shape = ActionMode.standard
 
-    if args.cnn is True and args.dnn is True:
-        raise ValueError("Only one can be selected among cnn and dnn.")
+    # if args.cnn is True and args.dnn is True:
+    #     raise ValueError("Only one can be selected among cnn and dnn.")
 
     if args.reduced is True:
         action_shape = ActionMode.reduced
@@ -94,12 +95,12 @@ def main():
         # Run until done
         done = False
         while done is False:
-            action1, prob = player.get_action(ob1, combine=args.combine)
+            action1, log_prob, value = player.get_action_value(ob1, combine=args.combine)
             action2 = opponent.get_action()
 
             (ob1, ob2), (rew1, rew2), done, info = env.step((action1, action2))
 
-            player.store_outcome(log_prob, rew1, )
+            player.store_outcome(log_prob, rew1, done)
 
             rewards_sum += rew1
             reward += rew1
@@ -109,13 +110,15 @@ def main():
                 env.render()
 
         # When done..
+        player.get_action_value(ob1, combine=args.combine)  # Extra iteration to save the last value
         (ob1, ob2) = env.reset()
         # plot(ob1) # plot the reset observation
         if ((episode + 1) % 20) == 0:
             logging.info("{}: [{:8}/{}] reward={}".format(filename, episode + 1, episodes, reward))
             reward = 0
 
-        if ((episode + 1) % 10) == 0:
+        if ((episode + 1) % 1) == 0:
+
             player.optimise_policy(episode)
 
     # Needs to be called in the end to shut down pygame
