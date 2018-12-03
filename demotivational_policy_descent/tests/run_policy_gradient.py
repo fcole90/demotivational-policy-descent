@@ -1,5 +1,8 @@
 import argparse
 import logging
+import sys
+import socket
+
 
 import numpy as np
 
@@ -8,7 +11,7 @@ from demotivational_policy_descent.agents.simple_ai import PongAi
 from demotivational_policy_descent.agents.policy_gradient import PolicyGradient, StateMode, ActionMode, PolicyNormal
 from demotivational_policy_descent.agents.policy_gradient_CNN import PolicyGradientCNN
 from demotivational_policy_descent.agents.policy_gradient_DNN import PolicyGradientDNN
-from demotivational_policy_descent.utils.utils import load_logger, alert_on_cuda
+from demotivational_policy_descent.utils.utils import load_logger, alert_on_cuda, get_commit_hash
 
 __FRAME_SIZE__ = (200, 210, 3)
 
@@ -62,6 +65,10 @@ def main():
     load_logger(filename=filename)
 
     logging.info("*** New run ----------------------------------------------------------------------------------- ***")
+    logging.info("Hostname: {}".format(socket.gethostname()))
+    logging.info("Commit hash: {}".format(get_commit_hash()))
+    logging.info("$" + " ".join(sys.argv))  # print script name and arguments
+
 
     if args.cuda is True:
         alert_on_cuda()
@@ -132,6 +139,12 @@ def main():
 
         if ((episode + 1) % 5) == 0:
             player.optimise_policy(episode)
+
+        if ((episode + 1) > 50000) and ((episode + 1) % 5000) == 0:
+            try:
+                player.save_model("tmp_" + filename + "_{}ep".format(episode))
+            except Exception as e:
+                logging.warning("Could not save: {}".format(e))
 
     # Needs to be called in the end to shut down pygame
     env.end()

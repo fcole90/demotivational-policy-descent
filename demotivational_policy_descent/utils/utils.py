@@ -4,6 +4,8 @@ from functools import reduce
 import operator
 import logging
 import os
+import subprocess
+import io
 
 # Path to this file
 UTILS_FILE_PATH = os.path.realpath(__file__)
@@ -66,5 +68,17 @@ def alert_on_cuda():
 
     """
     logging.info(cuda_art)
+
+def get_commit_hash():
+    hash_value = ""
+    try:
+        proc = subprocess.Popen("git rev-parse HEAD".split(" "), stdout=subprocess.PIPE)
+        for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
+            hash_value += line
+    except Exception as e:
+        logging.warning("Could not check hash value: {}".format(e))
+        return "unknown"
+
+    return hash_value[:-1]
 
 
