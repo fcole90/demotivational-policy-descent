@@ -233,6 +233,7 @@ class PolicyGradient(AgentInterface):
                                                                                   prod(initial_frame_shape)))
 
         # Always store the previous observation, already processed
+        prev_observation = self.prev_observation
         self.prev_observation = observation
         if store_prev_mode is True:
             # If only storing the prev_observation (iteration 0), then exit
@@ -240,9 +241,9 @@ class PolicyGradient(AgentInterface):
 
         # How do we combine the frames?
         if combine is True:
-            observation = np.concatenate((observation, self.prev_observation), axis=1)
+            observation = np.concatenate((observation, prev_observation), axis=1)
         else:
-            observation = observation - self.prev_observation
+            observation = observation - prev_observation
 
         # Make the observation flat
         observation = observation.ravel() / 255
