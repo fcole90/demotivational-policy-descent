@@ -16,6 +16,7 @@ class AgentInterface(abc.ABC):
         elif type(env) is not Pong:
             raise TypeError("Expected type(env) == 'Pong', found '{}' instead.".format(type(env)))
         self.player_id = player_id
+        self.agent_name = self.__class__.__name__
 
     def load_model(self, filename: str):
         """Loads a model from file.
@@ -97,4 +98,4 @@ class AgentInterface(abc.ABC):
         pass
 
     def get_name(self) -> str:
-        return self.__class__.__name__
+        return self.agent_name

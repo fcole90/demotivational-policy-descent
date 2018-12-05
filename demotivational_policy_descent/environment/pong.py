@@ -1,9 +1,9 @@
 import math
-import os
 import random
-
 import numpy as np
 import pygame
+import os
+from pygame.locals import *
 
 
 class Ball():
@@ -15,45 +15,43 @@ class Ball():
         self.last_touch = 0  # Remember who touched the ball last
         self.color = (255, 255, 255)
         self.rect = pygame.Rect(self.x, self.y, w, h)
-        self.MAX_BOUNCE_ANGLE = 60 * 2
+        self.MAX_BOUNCE_ANGLE = 75
         self.reset_ball()
 
     def move(self):
-        self.rect = self.rect.move(self.vector[0], self.vector[1])
-        self.x = self.rect.x
-        self.y = self.rect.y
+        self.x += self.vector[0]
+        self.y += self.vector[1]
         # Collisison with left and right wall
-        if self.x <= 0 - 3:
+        if self.x <= 0 - self.w:
             return 2, True
-        if self.x >= 210 - 2:
+        if self.x >= 210 - self.w:
             return 1, True
         # Collisison with top and bottom wall
-        if (self.y - abs(self.vector[1]) <= 35 and self.vector[1] < 0) or (
-                self.y + abs(self.vector[1]) >= 235 and self.vector[1] > 0):
+        if (self.y - abs(self.vector[1]) <= 35 and self.vector[1] < 0) or (self.y + abs(self.vector[1]) >= 235 and self.vector[1] > 0):
             self.vector = (self.vector[0], -1 * self.vector[1])
+
+        self.rect = pygame.Rect(self.x - self.w/2, self.y-self.h/2, self.w, self.h)
+
         return 0, False
 
     def reflect(self, offcenter, direction, player):
         # print("offcenter: ", offcenter)
-        offcenter = offcenter * direction
-        normalized_offcenter = (offcenter - self.h / 2) / 20
+        normalized_offcenter = offcenter / 10 * direction
         # print("norm offcenter: ",normalized_offcenter)
         bounce_angle = normalized_offcenter * self.MAX_BOUNCE_ANGLE
         # print("bounce_angle: ", bounce_angle)
         if player == 1:
-            self.vector = (3 * (math.cos(math.radians(bounce_angle)) + 1) * self.speed_mul,
-                           8 * -math.sin(math.radians(bounce_angle)) * self.speed_mul)
+            self.vector = (3 * (math.cos(math.radians(bounce_angle)) + 1)*self.speed_mul, 8 * -math.sin(math.radians(bounce_angle))*self.speed_mul)
         else:
-            self.vector = (-3 * (math.cos(math.radians(bounce_angle)) + 1) * self.speed_mul,
-                           8 * math.sin(math.radians(bounce_angle)) * self.speed_mul)
+            self.vector = (-3 * (math.cos(math.radians(bounce_angle)) + 1)*self.speed_mul, 8 * math.sin(math.radians(bounce_angle))*self.speed_mul)
         # print("vector: ", self.vector)
         self.speed_mul += .005
 
     def reset_ball(self):
         self.x = 105
-        self.y = 135 - 2
+        self.y = 135
         self.last_touch = 0
-        self.rect = pygame.Rect(self.x, self.y, 5, 5)
+        self.rect = pygame.Rect(self.x - self.w/2, self.y-self.h/2, self.w, self.h)
         # Reset ball in random direction
         bounce_angle = np.random.random() * 40
         side = random.choice([True, False])
@@ -99,15 +97,14 @@ class Player():
             self.x = 10
             self.color = (0, 255, 0)
         else:
-            self.x = 196
+            self.x = 195
             self.color = (255, 0, 0)
-        self.y = 136
+        self.y = 135
         self.rect = pygame.Rect(self.x, self.y - self.h / 2, self.w, self.h)
 
 
 class Pong():
     MOVE_UP, MOVE_DOWN, STAY = 1, 2, 0
-
     def __init__(self, headless=False):
         # [initiate game environment here]
         pygame.init()
@@ -145,23 +142,20 @@ class Pong():
     def set_names(self, p1, p2):
         self.player1.name = p1
         self.player2.name = p2
-
     def step(self, actions):
         """
-        This functions is a modification of the OpenAI gym step function for two players.
-        The render option can be set directly in this functions
+        This functions is a modification of the openai gym step function for two players. The render option can be set directly in this functions
 
         TODO:
         catch error if wrong player id is entered
 
-        ARGUMENTS:
+        ARGUMENS:
         player: integer; player=1: left player, player=2: right player
         action: the action the player took
         r: render the game or not
 
         RETURN:
-        observation: return the current state of the game area mirrored so that every player plays from the
-        perspective of the left player. This is done to speed up the training
+        observation: return the current state of the game area mirrored so that every player plays from the perspective of the left player. This is done to speed up the training
         reward: the reward the given player got
         done: episode over
         info: debug output
@@ -204,7 +198,7 @@ class Pong():
                 player1_reward = -10
                 player2_reward = 10
                 self.player2.score += 1
-        # ==================Draw=============================  
+        # ==================Draw=============================
         if r: self.__draw_scores()
         if r: self.__render_ball()
         if r: self.__render_player1()
@@ -264,9 +258,9 @@ class Pong():
         pygame.draw.rect(self.screen, (150, 150, 150), scoreboard_background)
         pygame.draw.rect(self.screen, (0, 0, 0), scoreboard_border, 4)
         pygame.draw.rect(self.screen, (0, 0, 0), scoreboard_separator)
-        # label_player_1 = self.myfont.render("{}".format(self.player1.name), 1, (0,255,0))
-        # self.screen.blit(label_player_1, (5,5))
-        label_score_p1 = self.myfont.render("{}: {}".format(self.player1.name, self.player1.score), 1, (0, 255, 0))
+        #label_player_1 = self.myfont.render("{}".format(self.player1.name), 1, (0,255,0))
+        #self.screen.blit(label_player_1, (5,5))
+        label_score_p1 = self.myfont.render("{}: {}".format(self.player1.name,self.player1.score), 1, (0, 255, 0))
         self.screen.blit(label_score_p1, (5, 5))
         label_score_p2 = self.myfont.render("{}: {}".format(self.player2.name, self.player2.score), 1, (255, 0, 0))
         self.screen.blit(label_score_p2, (5 + self.SCREEN_RESOLUTION[0] / 2 + 4, 5))
@@ -277,17 +271,17 @@ class Pong():
         This function computes the observation depending on the player. player gets the normal observation and player 2 the inverted
         """
         if player == 1:
-            observation_red = pygame.surfarray.pixels_red(self.screen)[:, 35:]
-            observation_green = pygame.surfarray.pixels_green(self.screen)[:, 35:]
-            observation_blue = pygame.surfarray.pixels_blue(self.screen)[:, 35:]
-            observation = np.stack((observation_red, observation_green, observation_blue), axis=2)
+            observation_red = pygame.surfarray.pixels_red(self.screen)[:,35:]
+            observation_green = pygame.surfarray.pixels_green(self.screen)[:,35:]
+            observation_blue = pygame.surfarray.pixels_blue(self.screen)[:,35:]
+            observation = np.stack((observation_red,observation_green, observation_blue),axis=2)
             observation = np.rot90(observation)
-        # Player 2 gets a frame with inverted colors and inverted positions so that both sides look the same to the agent     
+        # Player 2 gets a frame with inverted colors and inverted positions so that both sides look the same to the agent
         if player == 2:
-            observation_green = pygame.surfarray.pixels_red(self.screen)[:, 35:]
-            observation_red = pygame.surfarray.pixels_green(self.screen)[:, 35:]
-            observation_blue = pygame.surfarray.pixels_blue(self.screen)[:, 35:]
-            observation = np.stack((observation_red, observation_green, observation_blue), axis=2)
+            observation_green = pygame.surfarray.pixels_red(self.screen)[:,35:]
+            observation_red = pygame.surfarray.pixels_green(self.screen)[:,35:]
+            observation_blue = pygame.surfarray.pixels_blue(self.screen)[:,35:]
+            observation = np.stack((observation_red,observation_green, observation_blue),axis=2)
             observation = np.rot90(observation)
             observation = np.flip(observation, 1)
         return observation
@@ -296,6 +290,7 @@ class Pong():
         # Make sure game doesn't run at more than 30 frames per second
         # If we dont render we dont want this limitation
         self.clock.tick(60)
+        pygame.event.get()
 
         # This method is used for everything regarding the rendering. Here pygame would paint to the window
         pygame.display.flip()
