@@ -3,6 +3,7 @@ import torch.nn.functional as F
 from torch.distributions import Normal
 import numpy as np
 import torch
+import torchvision.transforms as transforms
 
 from demotivational_policy_descent.agents.agent_interface import AgentInterface
 from demotivational_policy_descent.agents.policy_gradient import PolicyGradient, PolicyNormal, PolicyCategorical
@@ -12,7 +13,7 @@ from demotivational_policy_descent.utils.utils import discount_rewards, softmax_
 
 class PolicyCNNNormal(PolicyNormal):
 
-    def outputSize(in_size, kernel_size, stride, padding):
+    def output_size(in_size, kernel_size, stride, padding):
         output = int((in_size - kernel_size + 2 * (padding)) / stride) + 1
         return (output)
 
@@ -26,9 +27,9 @@ class PolicyCNNNormal(PolicyNormal):
         self.pool = torch.nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
 
         if type(state_space) in [tuple, list]:
-            state_space = prod(state_space)
+            state_space_p = prod(state_space)
 
-        self.fc1 = torch.nn.Linear(state_space, 50)
+        self.fc1 = torch.nn.Linear(20 * state_space[0] * state_space[1], 50)
         self.fc_mean = torch.nn.Linear(50, action_space)
         self.fc_s = torch.nn.Linear(50, action_space)
 
@@ -71,10 +72,10 @@ class PolicyCNNCategorical(PolicyCategorical):
         self.state_shape = state_shape
         self.action_shape = action_shape
 
-        self.conv1 = torch.nn.Conv2d(state_shape, 20, kernel_size=3, stride=1, padding=1)
+        self.conv1 = torch.nn.Conv2d(in_channels=state_shape[2], out_channels=20, kernel_size=3, stride=1, padding=1)
         self.pool = torch.nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
 
-        self.fc1 = torch.nn.Linear(state_shape_p, 256)
+        self.fc1 = torch.nn.Linear(20 * state_shape[0] * state_shape[1], 256)
         self.fc2 = torch.nn.Linear(256, depth_last)
         self.fc3 = torch.nn.Linear(depth_last, action_shape)
 

@@ -3,6 +3,7 @@ import torch.nn.functional as F
 from torch.distributions import Normal, Categorical
 import numpy as np
 import torch
+import torchvision
 
 from demotivational_policy_descent.utils.utils import prod
 from demotivational_policy_descent.agents.agent_interface import AgentInterface
@@ -165,9 +166,9 @@ class PolicyGradient(AgentInterface):
 
         if actual_state_shape != self.state_shape:
             logging.warning("Expected frame size {} but found {}."
-                            " Using default policy ({}) with correct size.".format(self.__default_policy__.__name__,
-                                                                                   self.state_shape,
-                                                                                   actual_state_shape))
+                            " Using default policy ({}) with correct size.".format(self.state_shape,
+                                                                                   actual_state_shape,
+                                                                                   self.__default_policy__.__name__))
             logging.warning("If you want a different policy rerun the"
                             " program with 'state_shape={}'".format(actual_state_shape))
             self.state_shape = actual_state_shape
@@ -261,7 +262,8 @@ class PolicyGradient(AgentInterface):
             # Make the observation flat
             observation = observation.ravel() / 255.0
         else:
-            observation = np.array(observation, dtype=float) / 255.0
+            transform = torchvision.transforms.ToTensor()
+
 
         # Can be used by children implementations
         self.finalised_observation = observation
@@ -269,7 +271,10 @@ class PolicyGradient(AgentInterface):
         # Sanity check to have the right NN
         self.shape_check_and_adapt(observation.shape)
 
-        x = torch.from_numpy(observation).float().to(self.train_device)
+        if cnn_mode is True:
+            x = transform(observation).unsqueeze(0)
+        else:
+            x = torch.from_numpy(observation).float().to(self.train_device)
 
         if issubclass(self.current_policy_class, PolicyCategorical):
 

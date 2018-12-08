@@ -4,8 +4,7 @@ setup(
     packages=["demotivational_policy_descent"],
     version="0.0.1.dev1",
     description="Reinforcement Learning",
-    author="Fabio Colella",  # packager 
-    author_email="fabio.colella@aalto.fi",
+    author="Fabio Colella <fabio.colella@aalto.fi>, Michele Vantini <michele.vantini@aalto.fi>",
     url="https://github.com/fcole90/demotivational-policy-descent.git",
     download_url="https://github.com/fcole90/demotivational-policy-descent.git",
     keywords=["reinforcement", "learning"],
@@ -24,6 +23,6 @@ setup(
 Final project for the 2018 edition of the course of Reinforcement Learning
 at Aalto University, Finland.
 """,
-    install_requires=['gym', 'numpy', 'Pygame', 'matplotlib', 'torch'],
+    install_requires=['gym', 'numpy', 'Pygame', 'matplotlib', 'torch', 'torchvision'],
     python_requires='>=3.4'
 )
