@@ -14,6 +14,7 @@ agent child.
 
 ## How to run?
 Like this (choose the options to your taste):
+
 `PYTHONPATH=. python demotivational_policy_descent/tests/run_policy_gradient.py --combine --preprocess --red --cuda`
 
 #### Project Structure:
