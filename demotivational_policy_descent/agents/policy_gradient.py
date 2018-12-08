@@ -65,13 +65,13 @@ class PolicyCategorical(torch.nn.Module):
     def __init__(self, state_shape, action_shape, depth_last=128):
         super().__init__()
 
-        if type(state_shape) is tuple:
+        if type(state_shape) in [tuple, list]:
             if len(state_shape) == 1:
                 state_shape = state_shape[0]
             else:
                 raise ValueError("Expected int or tuple of len=1 for state_shape, found {}".format(state_shape))
 
-        if type(action_shape) is tuple:
+        if type(action_shape) in [tuple, list]:
             if len(action_shape) == 1:
                 action_shape = action_shape[0]
             else:
@@ -160,7 +160,7 @@ class PolicyGradient(AgentInterface):
     def shape_check_and_adapt(self, observation_shape):
         # Conformance check for policy and frame to have the right shape
         actual_state_shape = observation_shape
-        if type(actual_state_shape) is tuple and len(actual_state_shape) == 1:
+        if type(actual_state_shape) in [tuple, list] and len(actual_state_shape) == 1:
             actual_state_shape = actual_state_shape[0]
 
         if actual_state_shape != self.state_shape:
@@ -193,7 +193,8 @@ class PolicyGradient(AgentInterface):
                    evaluation=False,
                    combine=False,
                    store_prev_mode=False,
-                   get_value=False) -> tuple:
+                   get_value=False,
+                   cnn_mode=False) -> tuple:
         """Observe the environment and take an appropriate action.
 
         Parameters
@@ -256,8 +257,11 @@ class PolicyGradient(AgentInterface):
         else:
             observation = observation - prev_observation
 
-        # Make the observation flat
-        observation = observation.ravel() / 255
+        if cnn_mode is not True:
+            # Make the observation flat
+            observation = observation.ravel() / 255.0
+        else:
+            observation = np.array(observation, dtype=float) / 255.0
 
         # Can be used by children implementations
         self.finalised_observation = observation

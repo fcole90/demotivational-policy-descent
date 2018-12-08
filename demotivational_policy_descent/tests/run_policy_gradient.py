@@ -11,7 +11,7 @@ from demotivational_policy_descent.agents.simple_ai import PongAi
 from demotivational_policy_descent.agents.policy_gradient import PolicyGradient, StateMode, ActionMode, PolicyNormal
 from demotivational_policy_descent.agents.policy_gradient_CNN import PolicyGradientCNN
 from demotivational_policy_descent.agents.policy_gradient_DNN import PolicyGradientDNN
-from demotivational_policy_descent.utils.utils import load_logger, alert_on_cuda, get_commit_hash
+from demotivational_policy_descent.utils.utils import load_logger, alert_on_cuda, get_commit_hash, save_tmp_safe
 
 __FRAME_SIZE__ = (200, 210, 3)
 
@@ -140,10 +140,7 @@ def main():
             player.optimise_policy(episode)
 
         if ((episode + 1) > 10000) and ((episode + 1) % 5000) == 0:
-            try:
-                player.save_model("tmp_" + filename + "_{}ep".format(episode))
-            except Exception as e:
-                logging.warning("Could not save: {}".format(e))
+            save_tmp_safe(player, filename)
 
     # Needs to be called in the end to shut down pygame
     env.end()

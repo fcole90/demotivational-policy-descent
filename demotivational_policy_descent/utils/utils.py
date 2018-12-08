@@ -6,6 +6,7 @@ import logging
 import os
 import subprocess
 import io
+import utils.io
 
 # Path to this file
 UTILS_FILE_PATH = os.path.realpath(__file__)
@@ -80,5 +81,30 @@ def get_commit_hash():
         return "unknown"
 
     return hash_value[:-1]
+
+def save_tmp_safe(agent, filename):
+    latest_save_name = "tmp_" + filename + "_latest"
+    latest_save_name_old = "tmp_" + filename + "_old"
+
+    latest_save_name_old_path = os.path.join(utils.io.MODELS_PATH, latest_save_name_old) + ".mdl"
+
+    try:
+        # Remove old tmp save
+        if os.path.exists(latest_save_name_old_path):
+            os.remove(latest_save_name_old_path)
+
+        latest_save_name_path = os.path.join(utils.io.MODELS_PATH, latest_save_name) + ".mdl"
+
+        # Rename latest tmp to be the old tmp save
+        if os.path.exists(latest_save_name_path):
+            os.rename(latest_save_name_path, latest_save_name_old_path)
+        else:
+            print(latest_save_name_path, "di not exist")
+
+        # Save the agent
+        agent.save_model(latest_save_name)
+
+    except Exception as e:
+        logging.warning("Could not save: {}".format(e))
 
 
