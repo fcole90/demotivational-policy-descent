@@ -6,7 +6,7 @@ import logging
 import os
 import subprocess
 import io
-import utils.io
+import demotivational_policy_descent.utils.io as utils_io
 
 # Path to this file
 UTILS_FILE_PATH = os.path.realpath(__file__)
@@ -86,14 +86,14 @@ def save_tmp_safe(agent, filename):
     latest_save_name = "tmp_" + filename + "_latest"
     latest_save_name_old = "tmp_" + filename + "_old"
 
-    latest_save_name_old_path = os.path.join(utils.io.MODELS_PATH, latest_save_name_old) + ".mdl"
+    latest_save_name_old_path = os.path.join(utils_io.MODELS_PATH, latest_save_name_old) + ".mdl"
 
     try:
         # Remove old tmp save
         if os.path.exists(latest_save_name_old_path):
             os.remove(latest_save_name_old_path)
 
-        latest_save_name_path = os.path.join(utils.io.MODELS_PATH, latest_save_name) + ".mdl"
+        latest_save_name_path = os.path.join(utils_io.MODELS_PATH, latest_save_name) + ".mdl"
 
         # Rename latest tmp to be the old tmp save
         if os.path.exists(latest_save_name_path):
