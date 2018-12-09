@@ -140,7 +140,7 @@ def main():
         (ob1, ob2) = env.reset()
         # plot(ob1) # plot the reset observation
         if ((episode +1 ) % 20) == 0:
-            logging.info("{}: [{:8}/{}] reward={}".format(filename, episode + 1, episodes, reward))
+            logging.info("{}: [{:6}/{}] reward={}".format(filename, episode + 1, episodes, reward))
             reward = 0
 
         if ((episode + 1) % 5) == 0:
