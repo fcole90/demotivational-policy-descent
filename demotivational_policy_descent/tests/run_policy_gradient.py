@@ -60,6 +60,16 @@ def main():
         cnn_state_shape[0] *= 2
         filename += "_combine"
 
+    if args.cnn is True:
+        filename += "_CNN"
+
+    if args.dnn is True:
+        filename += "_DNN"
+
+    if args.normal is True:
+        filename += "_normal"
+
+
 
     load_logger(filename=filename)
 
@@ -84,12 +94,9 @@ def main():
     if args.cnn is True:
         # Todo: use the tuple to set the shape of the first layer of convolution
         player = PolicyGradientCNN(env, cnn_state_shape, action_shape, player_id, cuda=args.cuda)
-        filename += "_CNN"
     elif args.dnn is True:
         player = PolicyGradientDNN(env, state_shape, action_shape, player_id, cuda=args.cuda)
-        filename += "_DNN"
     elif args.normal is True:
-        filename += "_normal"
         player = PolicyGradient(env, state_shape, action_shape, player_id, cuda=args.cuda,
                                 policy=PolicyNormal(state_shape, action_shape))
     else:

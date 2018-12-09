@@ -40,12 +40,12 @@ def main():
     env.set_names(player.get_name(), opponent.get_name())
     ob1, ob2 = env.reset()
 
-    plot(ob1, "State 0, PL1")
-    plot(PolicyGradient.average_black_white(ob1), "State 0, PL1 BN", bn=True)
+    plot(ob1, "Observation of an initial state")
+    plot(PolicyGradient.average_black_white(ob1), "Desaturated (average grayscale) observation", bn=True)
     print("Shape:", ob1.shape)
     ob1_p = PolicyGradient.preprocess(ob1)
     print("Shape (preprocessed):", ob1_p.shape)
-    plot(ob1_p, "State 0, PL1 Karpathi", bn=True)
+    plot(ob1_p, "Downsampled, black and white obesrvation", bn=True)
     exit()
     plot(ob2, "State 0, PL2")
 
