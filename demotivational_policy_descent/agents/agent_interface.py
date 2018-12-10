@@ -38,8 +38,7 @@ class AgentInterface(abc.ABC):
         logging.debug("Loading model...")
 
         with open(file_path, "rb") as model_file:
-            device = torch.device('cpu')
-            model = torch.load(model_file, map_location=device)
+            model = pickle.load(model_file)
         logging.debug("Loaded!")
 
         for attribute in attribute_list:
