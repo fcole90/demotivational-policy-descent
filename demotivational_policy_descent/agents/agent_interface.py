@@ -4,6 +4,7 @@ import os
 import pickle
 
 import numpy as np
+import torch
 
 from demotivational_policy_descent.environment.pong import Pong
 from demotivational_policy_descent.utils import io
@@ -37,7 +38,8 @@ class AgentInterface(abc.ABC):
         logging.debug("Loading model...")
 
         with open(file_path, "rb") as model_file:
-            model = pickle.load(model_file)
+            device = torch.device('cpu')
+            model = torch.load(model_file, map_location=device)
         logging.debug("Loaded!")
 
         for attribute in attribute_list:
@@ -47,6 +49,7 @@ class AgentInterface(abc.ABC):
             else:
                 raise AttributeError("You tried to load {}.{} from you model, but the model in your file"
                                      " does not have such attribute.".format(model.get_name(), attribute))
+
 
     def save_model(self, filename: str):
         """Saves the model to file.
@@ -77,6 +80,13 @@ class AgentInterface(abc.ABC):
 
         with open(file_path, "wb") as model_file:
             pickle.dump(self, model_file)
+            if hasattr(self, "policy"):
+                try:
+                    torch.save(self.policy.state_dict(), file_path + ".pt")
+                except Exception as e:
+                    logging.error(e)
+
+
 
         logging.info("Model saved as {}".format(file_path))
 

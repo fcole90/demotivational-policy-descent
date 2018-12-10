@@ -26,6 +26,7 @@ def main():
     parser.add_argument("--cnn", action="store_true", help="Use a CNN instead than simple NN")
     parser.add_argument("--dnn", action="store_true", help="Use a DNN instead than simple NN")
     parser.add_argument("--cuda", action="store_true", help="Run in cuda device")
+    parser.add_argument("--load", action="store_true", help="Load a pre-trained model")
     args = parser.parse_args()
 
     # Default values
@@ -69,7 +70,9 @@ def main():
     if args.normal is True:
         filename += "_normal"
 
-
+    if args.load is True:
+        load_filename = filename
+        filename += "_loaded"
 
     load_logger(filename=filename)
 
@@ -81,6 +84,9 @@ def main():
 
     if args.cuda is True:
         alert_on_cuda()
+
+    if args.load is True:
+        logging.info("Loading pre-trained model as both opponent and player.")
 
     env = Pong(headless=not args.render)
     episodes = 500000
@@ -103,13 +109,33 @@ def main():
         player = PolicyGradient(env, state_shape, action_shape, player_id, cuda=args.cuda)
 
     opponent_id = 3 - player_id
-    opponent = PongAi(env, opponent_id)
+    if args.load is False:
+        opponent = PongAi(env, opponent_id)
+    else:
+        if args.cnn is True:
+            # Todo: use the tuple to set the shape of the first layer of convolution
+            opponent = PolicyGradientCNN(env, cnn_state_shape, action_shape, player_id)
+        elif args.dnn is True:
+            opponent = PolicyGradientDNN(env, state_shape, action_shape, player_id)
+        elif args.normal is True:
+            opponent = PolicyGradient(env, state_shape, action_shape, player_id,
+                                    policy=PolicyNormal(state_shape, action_shape))
+        else:
+            opponent = PolicyGradient(env, state_shape, action_shape, player_id)
+
+        player.load_model(load_filename)
+        player.player_id = player_id
+        # opponent.load_model(load_filename)
+        opponent.player_id = opponent_id
 
     env.set_names(player.get_name(), opponent.get_name())
 
     # Initialisation
     (ob1, ob2) = env.reset()
     player.set_prev_observation(ob1, combine=args.combine)
+
+    if args.load is True:
+        opponent.set_prev_observation(ob2, combine=args.combine)
 
     reward = 0
     logging.info("Beginning training..")
@@ -123,7 +149,11 @@ def main():
         done = False
         while done is False:
             action1, log_prob = player.get_action(ob1, combine=args.combine)
-            action2 = opponent.get_action()
+
+            if args.load is True:
+                action2, log_prob2 = opponent.get_action(ob2, combine=args.combine)
+            else:
+                action2 = opponent.get_action()
 
             (ob1, ob2), (rew1, rew2), done, info = env.step((action1, action2))
 
