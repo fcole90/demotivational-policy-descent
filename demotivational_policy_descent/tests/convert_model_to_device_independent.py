@@ -52,7 +52,7 @@ def main():
     parser.add_argument("--cnn", action="store_true", help="Use a CNN instead than simple NN")
     parser.add_argument("--dnn", action="store_true", help="Use a DNN instead than simple NN")
     parser.add_argument("--cuda", action="store_true", help="Run in cuda device")
-    parser.add_argument("--load", action="store_true", help="Load a pre-trained model")
+    # parser.add_argument("--load", action="store_true", help="Load a pre-trained model")
     args = parser.parse_args()
 
     # Default values
@@ -96,13 +96,9 @@ def main():
     if args.normal is True:
         filename += "_normal"
 
-    if args.load is True:
-        load_filename = filename
-        filename += "_loaded"
+    # load_logger(filename=filename)
 
-    load_logger(filename=filename)
-
-    logging.info("*** New run ----------------------------------------------------------------------------------- ***")
+    logging.info("*** Model conversion routine ***")
     logging.info("Hostname: {}".format(socket.gethostname()))
     logging.info("Commit hash: {}".format(get_commit_hash()))
     logging.info("$" + " ".join(sys.argv))  # print script name and arguments
@@ -111,8 +107,8 @@ def main():
     if args.cuda is True:
         alert_on_cuda()
 
-    if args.load is True:
-        logging.info("Loading pre-trained model as both opponent and player.")
+    # if args.load is True:
+    #     logging.info("Loading pre-trained model as both opponent and player.")
 
     env = Pong(headless=not args.render)
     episodes = 500000
@@ -121,35 +117,42 @@ def main():
 
     player_id = 1
 
-    # Select the Agent method to use
-    player = None
-    if args.cnn is True:
-        # Todo: use the tuple to set the shape of the first layer of convolution
-        player = PolicyGradientCNN(env, cnn_state_shape, action_shape, player_id, cuda=args.cuda)
-    elif args.dnn is True:
-        player = PolicyGradientDNN(env, state_shape, action_shape, player_id, cuda=args.cuda)
-    elif args.normal is True:
-        player = PolicyGradient(env, state_shape, action_shape, player_id, cuda=args.cuda,
-                                policy=PolicyNormal(state_shape, action_shape))
-    else:
-        player = PolicyGradient(env, state_shape, action_shape, player_id, cuda=args.cuda)
+    # # Select the Agent method to use
+    # player = None
+    # if args.cnn is True:
+    #     # Todo: use the tuple to set the shape of the first layer of convolution
+    #     player = PolicyGradientCNN(env, cnn_state_shape, action_shape, player_id, cuda=args.cuda)
+    # elif args.dnn is True:
+    #     player = PolicyGradientDNN(env, state_shape, action_shape, player_id, cuda=args.cuda)
+    # elif args.normal is True:
+    #     player = PolicyGradient(env, state_shape, action_shape, player_id, cuda=args.cuda,
+    #                             policy=PolicyNormal(state_shape, action_shape))
+    # else:
+    #     player = PolicyGradient(env, state_shape, action_shape, player_id, cuda=args.cuda)
 
-    opponent_id = 3 - player_id
-    if args.load is False:
-        opponent = PongAi(env, opponent_id)
-    else:
-        if args.cnn is True:
-            # Todo: use the tuple to set the shape of the first layer of convolution
-            opponent = PolicyGradientCNN(env, cnn_state_shape, action_shape, player_id)
-        elif args.dnn is True:
-            opponent = PolicyGradientDNN(env, state_shape, action_shape, player_id)
-        elif args.normal is True:
-            opponent = PolicyGradient(env, state_shape, action_shape, player_id,
-                                    policy=PolicyNormal(state_shape, action_shape))
-        else:
-            opponent = PolicyGradient(env, state_shape, action_shape, player_id)
+    # opponent_id = 3 - player_id
+    # if args.load is False:
+    #     opponent = PongAi(env, opponent_id)
+    # else:
+    #     if args.cnn is True:
+    #         # Todo: use the tuple to set the shape of the first layer of convolution
+    #         opponent = PolicyGradientCNN(env, cnn_state_shape, action_shape, player_id)
+    #     elif args.dnn is True:
+    #         opponent = PolicyGradientDNN(env, state_shape, action_shape, player_id)
+    #     elif args.normal is True:
+    #         opponent = PolicyGradient(env, state_shape, action_shape, player_id,
+    #                                 policy=PolicyNormal(state_shape, action_shape))
+    #     else:
+    #         opponent = PolicyGradient(env, state_shape, action_shape, player_id)
 
-    model = load_model(filename)
+    try:
+        model = load_model(filename)
+    except RuntimeError as runtime_e:
+        logging.error(runtime_e)
+        logging.error("Use this conversion tool with the same options you used in the original run and"
+                     " on the same machine. Pay careful attention to the '--cuda'"
+                     " flag and to your cuDNN library version.")
+        exit(1)
     policy = model.policy
     torch.save(policy.state_dict(), os.path.join(io.MODELS_PATH, filename + ".pt"))
 
