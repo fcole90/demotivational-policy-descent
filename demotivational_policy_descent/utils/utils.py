@@ -86,20 +86,20 @@ def save_tmp_safe(agent, filename):
     latest_save_name = "tmp_" + filename + "_latest"
     latest_save_name_old = "tmp_" + filename + "_old"
 
-    latest_save_name_old_path = os.path.join(utils_io.MODELS_PATH, latest_save_name_old) + ".mdl"
+    latest_save_name_old_path = os.path.join(utils_io.MODELS_PATH, latest_save_name_old) + ".pt"
 
     try:
         # Remove old tmp save
         if os.path.exists(latest_save_name_old_path):
             os.remove(latest_save_name_old_path)
 
-        latest_save_name_path = os.path.join(utils_io.MODELS_PATH, latest_save_name) + ".mdl"
+        latest_save_name_path = os.path.join(utils_io.MODELS_PATH, latest_save_name) + ".pt"
 
         # Rename latest tmp to be the old tmp save
         if os.path.exists(latest_save_name_path):
             os.rename(latest_save_name_path, latest_save_name_old_path)
         else:
-            print(latest_save_name_path, "di not exist")
+            logging.warning(latest_save_name_path + " did not exist")
 
         # Save the agent
         agent.save_model(latest_save_name)

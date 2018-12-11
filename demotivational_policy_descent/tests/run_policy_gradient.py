@@ -181,7 +181,7 @@ def main():
         if ((episode + 1) % 5) == 0:
             player.optimise_policy(episode)
 
-        if ((episode + 1) > 10000) and ((episode + 1) % 5000) == 0:
+        if ((episode + 1) > 10) and ((episode + 1) % 5) == 0:
             save_tmp_safe(player, filename)
 
     # Needs to be called in the end to shut down pygame
