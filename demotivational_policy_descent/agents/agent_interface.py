@@ -50,6 +50,9 @@ class AgentInterface(abc.ABC):
             map_location = device
         self.policy.load_state_dict(torch.load(file_path, map_location=map_location))
         self.policy.to(device)
+        # NN Optimiser
+        self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=0.0001)
+        self.reset()
         logging.debug("Loaded!")
 
         # for attribute in attribute_list:

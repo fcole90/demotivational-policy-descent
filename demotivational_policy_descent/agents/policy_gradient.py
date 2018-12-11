@@ -215,18 +215,24 @@ class PolicyGradient(AgentInterface):
         return frame
 
     @staticmethod
+    def paddless(frame: np.array):
+        frame[:, -15:-1, :] = 0
+        return frame
+
+    @staticmethod
     def average_black_white(frame: np.array):
         return np.sum(frame, axis=2, dtype=float) / 3
 
-    def set_prev_observation(self, frame: np.array, combine=False):
-        self.get_action(frame, combine=combine, store_prev_mode=True)
+    def set_prev_observation(self, frame: np.array, combine=False, paddless=False):
+        self.get_action(frame, combine=combine, store_prev_mode=True, paddless=paddless)
 
     def get_action(self, frame: np.array,
                    evaluation=False,
                    combine=False,
                    store_prev_mode=False,
                    get_value=False,
-                   cnn_mode=False) -> tuple:
+                   cnn_mode=False,
+                   paddless=False) -> tuple:
         """Observe the environment and take an appropriate action.
 
         Parameters
@@ -254,6 +260,8 @@ class PolicyGradient(AgentInterface):
         initial_frame_shape = frame.shape
         combine_mul = 2 if combine is True else 1  # multiplicator to make the lathes count when checking shapes
         observation = frame
+        if paddless is True:
+            observation = PolicyGradient.paddless(observation)
 
         if self.state_shape == StateMode.average * combine_mul:
             # Average values transforming in greyscale

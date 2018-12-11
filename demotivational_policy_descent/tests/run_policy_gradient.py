@@ -23,10 +23,12 @@ def main():
     parser.add_argument("--average", action="store_true", help="Run in averaged greyscale")
     parser.add_argument("--preprocess", action="store_true", help="Run preprocess image")
     parser.add_argument("--combine", action="store_true", help="Run on stacked images")
+    parser.add_argument("--paddless", action="store_true", help="Hide opponent's paddle")
     parser.add_argument("--cnn", action="store_true", help="Use a CNN instead than simple NN")
     parser.add_argument("--dnn", action="store_true", help="Use a DNN instead than simple NN")
     parser.add_argument("--cuda", action="store_true", help="Run in cuda device")
     parser.add_argument("--load", action="store_true", help="Load a pre-trained model")
+    parser.add_argument("--load_opponent", action="store_true", help="Load a pre-trained model for the opponent")
     args = parser.parse_args()
 
     # Default values
@@ -69,6 +71,9 @@ def main():
 
     if args.normal is True:
         filename += "_normal"
+
+    if args.paddless is True:
+        filename += "_paddless"
 
     if args.load is True:
         load_filename = filename
@@ -132,7 +137,7 @@ def main():
 
     # Initialisation
     (ob1, ob2) = env.reset()
-    player.set_prev_observation(ob1, combine=args.combine)
+    player.set_prev_observation(ob1, combine=args.combine, paddless=args.paddless)
 
     if args.load is True:
         opponent.set_prev_observation(ob2, combine=args.combine)
@@ -148,10 +153,10 @@ def main():
         # Run until done
         done = False
         while done is False:
-            action1, log_prob = player.get_action(ob1, combine=args.combine)
+            action1, log_prob = player.get_action(ob1, combine=args.combine, paddless=args.paddless)
 
             if args.load is True:
-                action2, log_prob2 = opponent.get_action(ob2, combine=args.combine)
+                action2, log_prob2 = opponent.get_action(ob2, combine=args.combine, evaluation=True)
             else:
                 action2 = opponent.get_action()
 

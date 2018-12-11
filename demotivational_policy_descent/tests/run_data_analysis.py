@@ -40,7 +40,9 @@ def main():
     env.set_names(player.get_name(), opponent.get_name())
     ob1, ob2 = env.reset()
 
+    ob1[:, -15:-1, :] = 0
     plot(ob1, "Observation of an initial state")
+    exit()
     plot(PolicyGradient.average_black_white(ob1), "Desaturated (average grayscale) observation", bn=True)
     print("Shape:", ob1.shape)
     ob1_p = PolicyGradient.preprocess(ob1)
