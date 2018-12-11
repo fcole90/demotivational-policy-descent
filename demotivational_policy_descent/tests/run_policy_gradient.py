@@ -142,6 +142,9 @@ def main():
     if args.load is True:
         opponent.set_prev_observation(ob2, combine=args.combine)
 
+    # Debug
+    opponent = PongAi(env, opponent_id)
+
     reward = 0
     logging.info("Beginning training..")
     for episode in range(episodes):
@@ -155,10 +158,11 @@ def main():
         while done is False:
             action1, log_prob = player.get_action(ob1, combine=args.combine, paddless=args.paddless)
 
-            if args.load is True:
-                action2, log_prob2 = opponent.get_action(ob2, combine=args.combine, evaluation=True)
-            else:
-                action2 = opponent.get_action()
+            # if args.load is True:
+            #     action2, log_prob2 = opponent.get_action(ob2, combine=args.combine, evaluation=True)
+            # else:
+            #     action2 = opponent.get_action()
+            action2 = opponent.get_action()
 
             (ob1, ob2), (rew1, rew2), done, info = env.step((action1, action2))
 
@@ -181,7 +185,7 @@ def main():
         if ((episode + 1) % 5) == 0:
             player.optimise_policy(episode)
 
-        if ((episode + 1) > 10) and ((episode + 1) % 5) == 0:
+        if ((episode + 1) > 10000) and ((episode + 1) % 5000) == 0:
             save_tmp_safe(player, filename)
 
     # Needs to be called in the end to shut down pygame
