@@ -161,31 +161,31 @@ class PolicyGradient(AgentInterface):
         logging.debug("Reset!")
 
 
-    def load_model(self, filename: str):
-
-        train_device = self.train_device
-
-        super().load_model(filename)
-
-        old_train_device = self.train_device
-
-        self.train_device = train_device
-
-        file_path = os.path.join(io.MODELS_PATH, filename)
-
-        if not os.path.exists(file_path + ".pt"):
-            torch.save(self.policy.state_dict(), file_path + ".pt")
-
-        device = torch.device(train_device)
-        map_location = train_device
-        if train_device == "cuda":
-            map_location += ":0"
-
-        self.policy.load_state_dict(torch.load(file_path + ".pt",
-                                               map_location=map_location))
-        self.policy.eval()
-
-        self.policy.to(device)
+    # def load_model(self, filename: str):
+    #
+    #     train_device = self.train_device
+    #
+    #     super().load_model(filename)
+    #
+    #     old_train_device = self.train_device
+    #
+    #     self.train_device = train_device
+    #
+    #     file_path = os.path.join(io.MODELS_PATH, filename)
+    #
+    #     if not os.path.exists(file_path + ".pt"):
+    #         torch.save(self.policy.state_dict(), file_path + ".pt")
+    #
+    #     device = torch.device(train_device)
+    #     map_location = train_device
+    #     if train_device == "cuda":
+    #         map_location += ":0"
+    #
+    #     self.policy.load_state_dict(torch.load(file_path + ".pt",
+    #                                            map_location=map_location))
+    #     self.policy.eval()
+    #
+    #     self.policy.to(device)
 
 
 

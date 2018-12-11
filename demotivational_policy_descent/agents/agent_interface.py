@@ -9,7 +9,6 @@ import torch
 from demotivational_policy_descent.environment.pong import Pong
 from demotivational_policy_descent.utils import io
 
-
 class AgentInterface(abc.ABC):
     def __init__(self, env, player_id=1):
         if env is None:
@@ -17,6 +16,8 @@ class AgentInterface(abc.ABC):
         elif type(env) is not Pong:
             raise TypeError("Expected type(env) == 'Pong', found '{}' instead.".format(type(env)))
         self.player_id = player_id
+        self.policy = None
+        self.train_device = "cpu"
         self.agent_name = self.__class__.__name__
 
     def load_model(self, filename: str):
@@ -27,7 +28,7 @@ class AgentInterface(abc.ABC):
         filename: str
             a path to the model to load
         """
-        file_path = os.path.join(io.MODELS_PATH, filename) + ".mdl"
+        file_path = os.path.join(io.MODELS_PATH, filename) + ".pt"
 
         attribute_list = vars(self).keys()
 
@@ -37,17 +38,27 @@ class AgentInterface(abc.ABC):
 
         logging.debug("Loading model...")
 
-        with open(file_path, "rb") as model_file:
-            model = pickle.load(model_file)
+        # device = torch.device('cpu')
+        # model = self.policy
+        # model.load_state_dict(torch.load(PATH, map_location=device))
+
+        device = torch.device(self.train_device)
+        map_location = torch.device
+        if map_location == "cuda":
+            map_location += ":0"
+        else:
+            map_location = device
+        self.policy.load_state_dict(torch.load(file_path, map_location=map_location))
+        self.policy.to(device)
         logging.debug("Loaded!")
 
-        for attribute in attribute_list:
-            if hasattr(model, attribute):
-                val = getattr(model, attribute)
-                setattr(self, attribute, val)
-            else:
-                raise AttributeError("You tried to load {}.{} from you model, but the model in your file"
-                                     " does not have such attribute.".format(model.get_name(), attribute))
+        # for attribute in attribute_list:
+        #     if hasattr(model, attribute):
+        #         val = getattr(model, attribute)
+        #         setattr(self, attribute, val)
+        #     else:
+        #         raise AttributeError("You tried to load {}.{} from you model, but the model in your file"
+        #                              " does not have such attribute.".format(model.get_name(), attribute))
 
 
     def save_model(self, filename: str):
@@ -62,7 +73,7 @@ class AgentInterface(abc.ABC):
             raise ValueError("A dir separator is contained in the filename."
                              " Just give your file a name, it will be loaded from {}".format(io.MODELS_PATH))
 
-        ext = ".mdl"
+        ext = ".pt"
         file_path = os.path.join(io.MODELS_PATH, filename)
 
         if os.path.exists(file_path + ext):
@@ -77,13 +88,12 @@ class AgentInterface(abc.ABC):
 
         logging.debug("Saving model...")
 
-        with open(file_path, "wb") as model_file:
-            pickle.dump(self, model_file)
-            if hasattr(self, "policy"):
-                try:
-                    torch.save(self.policy.state_dict(), file_path + ".pt")
-                except Exception as e:
-                    logging.error(e)
+        torch.save(self.policy.state_dict(), file_path)
+            # if hasattr(self, "policy"):
+            #     try:
+            #         torch.save(self.policy.state_dict(), file_path + ".pt")
+            #     except Exception as e:
+            #         logging.error(e)
 
 
 
