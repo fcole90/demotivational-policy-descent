@@ -1,6 +1,8 @@
 # demotivational-policy-descent
-## AI agents playing pong in a gym env
-### Reinforcement Learning course final project
+### AI agents playing pong in a gym env
+#### Reinforcement Learning course final project
+
+AI agent learning to play pong using policy descent, actor critic and other approaches.
 
 A PDF report of this project is available [here](https://github.com/fcole90/demotivational-policy-descent/releases/download/report/RL_report.pdf).
 
