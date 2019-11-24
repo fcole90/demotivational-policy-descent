@@ -1,5 +1,6 @@
 # demotivational-policy-descent
-Reinforcement Learning final project
+# AI agents playing pong in a gym env
+### Reinforcement Learning course final project
 
 Methods `load_model` and `save_model` are implemented in
 the agent interface.
