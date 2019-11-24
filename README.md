@@ -6,6 +6,10 @@ AI agent learning to play pong using policy descent, actor critic and other appr
 
 A PDF report of this project is available [here](https://github.com/fcole90/demotivational-policy-descent/releases/download/report/RL_report.pdf).
 
+### Group project
+- [Fabio Colella](https://www.linkedin.com/in/fabio-colella-099858162/)
+- [Michele Vantini](https://www.linkedin.com/in/michele-vantini-9825bb42/)
+
 #### Preprocessing
 ![rl_ai_preprocessing](https://user-images.githubusercontent.com/1292230/69499071-19283d80-0ef7-11ea-88f3-90b69b7c6ae9.png)
 
