@@ -1,6 +1,10 @@
 # demotivational-policy-descent
-# AI agents playing pong in a gym env
+## AI agents playing pong in a gym env
 ### Reinforcement Learning course final project
+
+A PDF report of this project is available [here](https://github.com/fcole90/demotivational-policy-descent/releases/download/report/RL_report.pdf).
+
+#### Instructions
 
 Methods `load_model` and `save_model` are implemented in
 the agent interface.
